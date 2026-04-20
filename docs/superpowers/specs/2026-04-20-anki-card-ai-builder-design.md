@@ -73,7 +73,7 @@ class Card(BaseModel):
     source_language: str     # Language of the source material (default: "de")
     target_language: str     # "en", "fr", "zh"
     translation: str | None
-    pronunciation: str | None  # IPA format for all languages
+    pronunciation: str | None  # IPA for en/fr, pinyin for zh
     example_sentence: str | None  # Kid-friendly with emojis
     sentence_translation: str | None
     part_of_speech: str | None
@@ -140,7 +140,7 @@ Takes partial cards and fills missing fields using MiniMax text generation API.
 - System prompt: "You are a friendly language tutor for German-speaking kids aged 9-12"
 - Includes examples of good output (emoji usage, sentence complexity)
 - Requests structured JSON output
-- Pronunciation always in IPA format regardless of language
+- Language-specific instructions (e.g., Chinese: always include pinyin with tone marks)
 
 ### Cost control
 - Only enriches fields that are actually missing
