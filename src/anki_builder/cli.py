@@ -19,6 +19,14 @@ WORK_DIR = Path(".anki-builder")
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp"}
 
 
+def _words_to_cards(words_str: str, target_language: str, source_language: str) -> list[Card]:
+    words = [w.strip() for w in words_str.split(",") if w.strip()]
+    return [
+        Card(word=w, target_language=target_language, source_language=source_language, source="cli")
+        for w in words
+    ]
+
+
 def _detect_input_type(path_or_url: str) -> str:
     if GDRIVE_URL_PATTERN.search(path_or_url):
         return "gdrive"
@@ -41,34 +49,44 @@ def main():
 
 
 @main.command()
-@click.option("--input", "input_path", required=True, type=str, help="Input file path or Google Drive folder URL")
+@click.option("--input", "input_path", default=None, type=str, help="Input file path or Google Drive folder URL")
+@click.option("--words", "words", default=None, type=str, help="Comma-separated words (e.g. \"Glove,Squirrel,impossible\")")
 @click.option("--lang", "target_language", required=True, help="Target language code (en, fr, zh)")
 @click.option("--source-lang", "source_language", default=None, help="Source language code (default: from config)")
 @click.option("--column-map", type=str, default=None, help="Column mapping as key=value pairs, comma-separated")
-def ingest(input_path: str, target_language: str, source_language: str | None, column_map: str | None):
-    """Extract vocabulary from input files."""
+def ingest(input_path: str | None, words: str | None, target_language: str, source_language: str | None, column_map: str | None):
+    """Extract vocabulary from input files or word list."""
+    if not input_path and not words:
+        raise click.ClickException("Provide either --input or --words.")
+    if input_path and words:
+        raise click.ClickException("Use either --input or --words, not both.")
+
     config = load_config(WORK_DIR)
     state = StateManager(WORK_DIR)
     src_lang = source_language or config.default_source_language
-    input_type = _detect_input_type(input_path)
 
-    col_map = None
-    if column_map:
-        col_map = dict(pair.split("=") for pair in column_map.split(","))
+    if words:
+        cards = _words_to_cards(words, target_language, src_lang)
+        click.echo(f"Ingesting {len(cards)} words from command line...")
+    else:
+        input_type = _detect_input_type(input_path)
+        col_map = None
+        if column_map:
+            col_map = dict(pair.split("=") for pair in column_map.split(","))
 
-    click.echo(f"Ingesting {input_path} as {input_type}...")
+        click.echo(f"Ingesting {input_path} as {input_type}...")
 
-    if input_type == "gdrive":
-        cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.deepseek_api_key, src_lang)
-    elif input_type == "excel":
-        path = Path(input_path)
-        cards = ingest_excel(path, target_language, src_lang, col_map)
-    elif input_type == "pdf":
-        path = Path(input_path)
-        cards = ingest_pdf(path, target_language, config.deepseek_api_key, src_lang)
-    elif input_type == "image":
-        path = Path(input_path)
-        cards = ingest_image(path, target_language, config.deepseek_api_key, src_lang)
+        if input_type == "gdrive":
+            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.deepseek_api_key, src_lang)
+        elif input_type == "excel":
+            path = Path(input_path)
+            cards = ingest_excel(path, target_language, src_lang, col_map)
+        elif input_type == "pdf":
+            path = Path(input_path)
+            cards = ingest_pdf(path, target_language, config.deepseek_api_key, src_lang)
+        elif input_type == "image":
+            path = Path(input_path)
+            cards = ingest_image(path, target_language, config.deepseek_api_key, src_lang)
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)
@@ -179,33 +197,43 @@ def export(deck_name: str | None, output_path: str | None, prune: bool):
 
 
 @main.command()
-@click.option("--input", "input_path", required=True, type=str)
+@click.option("--input", "input_path", default=None, type=str)
+@click.option("--words", "words", default=None, type=str, help="Comma-separated words")
 @click.option("--lang", "target_language", required=True)
 @click.option("--deck", "deck_name", default=None)
 @click.option("--no-images", is_flag=True)
 @click.option("--no-audio", is_flag=True)
 @click.option("--source-lang", "source_language", default=None)
-def run(input_path: str, target_language: str, deck_name: str | None,
+def run(input_path: str | None, words: str | None, target_language: str, deck_name: str | None,
         no_images: bool, no_audio: bool, source_language: str | None):
     """Run pipeline: ingest → enrich → media → review. Export separately after review."""
+    if not input_path and not words:
+        raise click.ClickException("Provide either --input or --words.")
+    if input_path and words:
+        raise click.ClickException("Use either --input or --words, not both.")
+
     config = load_config(WORK_DIR)
     state = StateManager(WORK_DIR)
     src_lang = source_language or config.default_source_language
-    input_type = _detect_input_type(input_path)
 
     # Ingest
-    click.echo(f"Step 1/4: Ingesting {input_path}...")
-    if input_type == "gdrive":
-        cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.deepseek_api_key, src_lang)
-    elif input_type == "excel":
-        path = Path(input_path)
-        cards = ingest_excel(path, target_language, src_lang)
-    elif input_type == "pdf":
-        path = Path(input_path)
-        cards = ingest_pdf(path, target_language, config.deepseek_api_key, src_lang)
-    elif input_type == "image":
-        path = Path(input_path)
-        cards = ingest_image(path, target_language, config.deepseek_api_key, src_lang)
+    if words:
+        cards = _words_to_cards(words, target_language, src_lang)
+        click.echo(f"Step 1/4: Ingesting {len(cards)} words from command line...")
+    else:
+        input_type = _detect_input_type(input_path)
+        click.echo(f"Step 1/4: Ingesting {input_path}...")
+        if input_type == "gdrive":
+            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.deepseek_api_key, src_lang)
+        elif input_type == "excel":
+            path = Path(input_path)
+            cards = ingest_excel(path, target_language, src_lang)
+        elif input_type == "pdf":
+            path = Path(input_path)
+            cards = ingest_pdf(path, target_language, config.deepseek_api_key, src_lang)
+        elif input_type == "image":
+            path = Path(input_path)
+            cards = ingest_image(path, target_language, config.deepseek_api_key, src_lang)
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)
