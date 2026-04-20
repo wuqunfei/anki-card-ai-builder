@@ -96,18 +96,27 @@ Three input handlers, all producing `list[Card]` with partial fields.
 
 ### PDF ingestion
 - Uses `pymupdf` to extract selectable text
-- If text extraction yields no content (scanned PDF), falls back to sending pages as images to DeepSeek vision API for OCR
-- Extracted raw text goes through vocabulary extraction
+- If text extraction yields no content (scanned PDF), falls back to DeepSeek vision API
+- In both cases, extracted text is then sent through AI-powered vocabulary extraction
 
 ### Image ingestion
-- Sends image to DeepSeek vision API for OCR
-- Extracted text goes through vocabulary extraction
+- Sends image to DeepSeek vision API
 - Supports photos of textbook pages, whiteboards, word lists
+- Extracted content is sent through AI-powered vocabulary extraction
 
 ### Vocabulary extraction (shared by PDF and image)
-- Sends raw text + target language + learner level to MiniMax text API
-- AI identifies individual words/phrases worth learning
-- Each word becomes a partial card with `word` and `source` filled in
+A two-step process combining OCR/text extraction with AI prompting:
+
+1. **Raw extraction:** Get text from the source (pymupdf for digital PDFs, DeepSeek vision for images/scanned PDFs)
+2. **AI-powered structuring:** Send the raw text to DeepSeek with a prompt that instructs it to:
+   - Identify vocabulary words/phrases worth learning
+   - Extract any surrounding context (definitions, translations, example usage) already present in the source
+   - Return structured data matching the card schema fields
+   - Preserve any information from the source rather than generating new content
+
+This means DeepSeek does double duty for images/scans: vision OCR + structured extraction in a single call. For digital PDFs, pymupdf extracts text first, then DeepSeek structures it.
+
+Each extracted item becomes a partial card. Fields found in the source are filled; missing fields are left for the enrichment step.
 
 ## AI Enrichment
 
