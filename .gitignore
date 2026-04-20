@@ -6,3 +6,4 @@ output/
 .env
 *.egg-info/
 dist/
+.idea/
