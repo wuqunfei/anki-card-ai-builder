@@ -4,7 +4,7 @@
 
 A Python CLI tool that generates Anki flashcards for language learning. It ingests vocabulary from multiple sources (Excel, PDF, images), enriches missing fields with AI, generates audio and images, and exports `.apkg` packages compatible with any Anki client.
 
-**Default learner profile:** German native speaker learning English, French, and Chinese. Configurable per deck.
+**Default learner profile:** Source language German, learning English, French, and Chinese. Configurable per deck.
 
 **Target audience for card content:** Kids aged 9-12 — simple natural sentences with emojis.
 
@@ -70,9 +70,8 @@ anki-card-ai-builder/
 class Card(BaseModel):
     id: str                  # UUID, stable across updates
     word: str
-    source_language: str     # Language the word comes from (e.g., "en", "fr", "zh")
+    source_language: str     # Language of the source material (default: "de")
     target_language: str     # "en", "fr", "zh"
-    native_language: str     # "de" (default)
     translation: str | None
     pronunciation: str | None  # IPA for en/fr, pinyin for zh
     example_sentence: str | None  # Kid-friendly with emojis
@@ -125,7 +124,7 @@ Takes partial cards and fills missing fields using MiniMax text generation API.
 
 ### Behavior
 - Batches cards (up to ~20 per API call)
-- Sends structured prompt with card schema, target language, native language, and learner profile
+- Sends structured prompt with card schema, source language, target language, and learner profile
 - Returns structured JSON
 
 ### Field generation rules
@@ -202,7 +201,7 @@ anki-builder run --input vocab.xlsx --lang en        # All steps in one go
 Stored in `.anki-builder/config.yaml`:
 
 ```yaml
-native_language: de
+default_source_language: de
 default_target_language: en
 learner_profile: "ages 9-12, kid-friendly with emojis"
 
