@@ -76,7 +76,8 @@ class Card(BaseModel):
     pronunciation: str | None  # IPA for en/fr, pinyin for zh
     example_sentence: str | None  # Kid-friendly with emojis
     sentence_translation: str | None  # Kid-friendly with emojis
-    mnemonic: str | None        # Word breakdown: prefix + root + suffix (e.g., "un- + break + -able")
+    mnemonic: str | None        # Word breakdown in HTML rich text: prefix (blue) + root (red) + suffix (green)
+                                 # e.g., '<span style="color:blue">un-</span> + <span style="color:red">break</span> + <span style="color:green">-able</span>'
     part_of_speech: str | None
     tags: list[str]
     audio_file: str | None   # Path in media/
@@ -135,7 +136,7 @@ Takes partial cards and fills missing fields using MiniMax text API (Anthropic-c
 | `pronunciation`        | Generate only if missing from source          |
 | `example_sentence`     | Generate only if missing from source          |
 | `sentence_translation` | Generate only if missing from source          |
-| `mnemonic`             | Always generate (prefix + root + suffix breakdown) |
+| `mnemonic`             | Always generate (prefix + root + suffix breakdown, color-coded HTML) |
 | `part_of_speech`       | Always generate (AI classifies for consistency)|
 
 ### Prompt strategy
