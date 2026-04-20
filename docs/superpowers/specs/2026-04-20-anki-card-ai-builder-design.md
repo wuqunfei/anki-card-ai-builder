@@ -70,6 +70,7 @@ anki-card-ai-builder/
 class Card(BaseModel):
     id: str                  # UUID, stable across updates
     word: str
+    source_language: str     # Language the word comes from (e.g., "en", "fr", "zh")
     target_language: str     # "en", "fr", "zh"
     native_language: str     # "de" (default)
     translation: str | None
