@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 class MediaConfig(BaseModel):
     audio_enabled: bool = True
     image_enabled: bool = True
+    image_provider: str = "minimax"  # "minimax" or "local" (SDXL Turbo)
     concurrency: int = 5
 
 
