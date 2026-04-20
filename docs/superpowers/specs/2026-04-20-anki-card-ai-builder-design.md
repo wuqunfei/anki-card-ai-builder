@@ -67,8 +67,7 @@ anki-card-ai-builder/
 ## Card Schema
 
 ```python
-@dataclass
-class Card:
+class Card(BaseModel):
     id: str                  # UUID, stable across updates
     word: str
     target_language: str     # "en", "fr", "zh"
@@ -197,9 +196,8 @@ native_language: de
 default_target_language: en
 learner_profile: "ages 9-12, kid-friendly with emojis"
 
-api_keys:
-  minimax: ${MINIMAX_API_KEY}      # env var reference
-  deepseek: ${DEEPSEEK_API_KEY}
+# API keys are read from environment variables:
+# MINIMAX_API_KEY, DEEPSEEK_API_KEY
 
 media:
   audio_enabled: true
