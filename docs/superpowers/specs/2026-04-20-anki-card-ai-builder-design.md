@@ -220,6 +220,11 @@ export:
 
 API keys loaded from environment variables, never stored in the config file directly.
 
+## Tooling
+
+- **Dependency management:** `uv`
+- **Test framework:** `unittest` (stdlib)
+
 ## Key Dependencies
 
 - `click` — CLI framework
