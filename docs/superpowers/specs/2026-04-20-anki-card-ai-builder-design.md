@@ -158,6 +158,7 @@ Takes partial cards and fills missing fields using MiniMax text generation API.
 ### Image generation
 - MiniMax image generation API
 - Prompt: "Simple, colorful illustration of [word] suitable for children aged 9-12. Friendly cartoon style, no text."
+- Image size: 1024x1024px (sharp on iPad, scales down well on iPhone)
 - Saves to `.anki-builder/media/{card_id}_image.png`
 - Skips if image already exists
 - Can be disabled via CLI flag (`--no-images`)
