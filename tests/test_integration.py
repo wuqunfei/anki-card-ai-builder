@@ -1,8 +1,10 @@
+# tests/test_integration.py
 import json
+import tempfile
 import unittest
 import zipfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 
 import openpyxl
 from click.testing import CliRunner
@@ -11,7 +13,7 @@ from anki_builder.cli import main
 
 
 class TestFullPipeline(unittest.TestCase):
-    """Integration test: Excel -> enrich -> media -> export, all with mocked APIs."""
+    """Integration test: Excel → enrich → media → export, all with mocked APIs."""
 
     def _create_xlsx(self, path: Path):
         wb = openpyxl.Workbook()
@@ -21,7 +23,7 @@ class TestFullPipeline(unittest.TestCase):
         ws.append(["cat", "Katze"])
         wb.save(path)
 
-    @patch("anki_builder.media.image.generate_image_batch")
+    @patch("anki_builder.cli.generate_image_batch")
     @patch("anki_builder.cli.generate_audio_batch")
     @patch("anki_builder.cli.enrich_cards")
     def test_full_run_command(self, mock_enrich, mock_audio, mock_image):
@@ -40,13 +42,11 @@ class TestFullPipeline(unittest.TestCase):
             return enriched
         mock_enrich.side_effect = fake_enrich
 
-        # Mock audio: sync, return cards unchanged
+        # Mock media: just return cards unchanged
         mock_audio.side_effect = lambda cards, media_dir: cards
-
-        # Mock image: async, return cards unchanged
-        async def fake_image_batch(cards, media_dir, api_key, concurrency):
-            return list(cards)
-        mock_image.side_effect = fake_image_batch
+        async def fake_image(cards, media_dir, api_key, concurrency):
+            return cards
+        mock_image.side_effect = fake_image
 
         runner = CliRunner()
         with runner.isolated_filesystem():

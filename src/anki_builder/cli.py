@@ -12,8 +12,7 @@ from anki_builder.ingest.image import ingest_image
 from anki_builder.ingest.gdrive import ingest_gdrive_folder, GDRIVE_URL_PATTERN
 from anki_builder.enrich.ai import enrich_cards
 from anki_builder.media.audio import generate_audio_batch
-from anki_builder.media import image as _minimax_image_mod
-from anki_builder.media import image_local as _local_image_mod
+from anki_builder.media.image import generate_image_batch
 from anki_builder.export.apkg import export_apkg
 
 WORK_DIR = Path(".anki-builder")
@@ -115,13 +114,10 @@ def media(no_images: bool, no_audio: bool):
         cards = generate_audio_batch(cards, state.media_dir)
 
     if not no_images and config.media.image_enabled:
-        click.echo(f"Generating images for {len(cards)} cards (provider: {config.media.image_provider})...")
-        if config.media.image_provider == "local":
-            cards = _local_image_mod.generate_image_batch(cards, state.media_dir)
-        else:
-            cards = asyncio.run(_minimax_image_mod.generate_image_batch(
-                cards, state.media_dir, config.minimax_api_key, config.media.concurrency,
-            ))
+        click.echo(f"Generating images for {len(cards)} cards...")
+        cards = asyncio.run(generate_image_batch(
+            cards, state.media_dir, config.minimax_api_key, config.media.concurrency,
+        ))
 
     # Update status to complete for cards that have both media
     updated = []
@@ -226,12 +222,9 @@ def run(input_path: str, target_language: str, deck_name: str | None,
     if not no_audio and config.media.audio_enabled:
         enriched = generate_audio_batch(enriched, state.media_dir)
     if not no_images and config.media.image_enabled:
-        if config.media.image_provider == "local":
-            enriched = _local_image_mod.generate_image_batch(enriched, state.media_dir)
-        else:
-            enriched = asyncio.run(_minimax_image_mod.generate_image_batch(
-                enriched, state.media_dir, config.minimax_api_key, config.media.concurrency,
-            ))
+        enriched = asyncio.run(generate_image_batch(
+            enriched, state.media_dir, config.minimax_api_key, config.media.concurrency,
+        ))
 
     updated = []
     for card in enriched:

@@ -34,11 +34,13 @@ def _build_enrichment_prompt(cards: list[Card], source_language: str) -> str:
         f"emoji sprinkled in.\n\n"
         f"For EVERY word, you MUST generate:\n"
         f"- `part_of_speech`: the grammatical category (noun, verb, adjective, etc.)\n"
-        f"- `mnemonic`: word breakdown as HTML with colored parts:\n"
-        f'  prefix in blue: <span style="color:blue">un-</span>\n'
-        f'  root in red: <span style="color:red">break</span>\n'
-        f'  suffix in green: <span style="color:green">-able</span>\n'
-        f"  Join parts with \" + \". If a word has no prefix/suffix, just show the root in red.\n\n"
+        f"- `mnemonic`: word breakdown as HTML with soft colored parts:\n"
+        f'  prefix in soft blue: <span style="color:#5b9bd5">un-</span>\n'
+        f'  root in soft coral: <span style="color:#e07b7b">break</span>\n'
+        f'  suffix in soft green: <span style="color:#6dba6d">-able</span>\n'
+        f"  Join parts with \" + \". ONLY provide a mnemonic if the word has meaningful parts "
+        f"(prefixes, suffixes, or compound structure). If it's a simple word with no useful "
+        f"breakdown (e.g. \"glove\", \"cat\", \"dog\"), set mnemonic to null.\n\n"
         f"For fields that are already filled, keep the existing value.\n"
         f"For missing fields, generate:\n"
         f"- `translation`: translate to {source_language}\n"
