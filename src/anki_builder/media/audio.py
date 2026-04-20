@@ -1,12 +1,14 @@
 import asyncio
+import base64
 from pathlib import Path
 
 import httpx
 
 from anki_builder.schema import Card
 
-MINIMAX_API_BASE = "https://api.minimax.io/v1"
-T2A_MODEL = "speech-2.8-hd"
+MINIMAX_API_URL = "https://api.minimax.io/v1/t2a_v2"
+T2A_MODEL = "speech-02-hd"
+DEFAULT_VOICE_ID = "Friendly_Person"
 
 
 async def generate_audio_for_card(
@@ -25,50 +27,31 @@ async def generate_audio_for_card(
         return card.model_copy(update={"audio_file": str(audio_path)})
 
     headers = {"Authorization": f"Bearer {api_key}"}
-
-    # Step 1: Create T2A task
     payload = {
         "model": T2A_MODEL,
         "text": card.word,
-        "voice_id": "English_expressive_narrator",
+        "voice_setting": {"voice_id": DEFAULT_VOICE_ID},
+        "audio_setting": {"format": "mp3", "sample_rate": 32000},
     }
+
     resp = await client.post(
-        f"{MINIMAX_API_BASE}/t2a_async_v2",
+        MINIMAX_API_URL,
         headers=headers,
         json=payload,
         timeout=30,
     )
     resp.raise_for_status()
-    task_id = resp.json()["task_id"]
+    data = resp.json()
 
-    # Step 2: Poll until complete
-    for _ in range(60):  # Max ~5 minutes
-        resp = await client.get(
-            f"{MINIMAX_API_BASE}/query/t2a_async_query_v2",
-            params={"task_id": task_id},
-            headers=headers,
-            timeout=30,
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        if data.get("status") == "Success":
-            file_id = data["file_id"]
-            break
-        elif data.get("status") == "Failed":
-            return card
-        await asyncio.sleep(5)
-    else:
-        return card  # Timeout
+    status_code = data.get("base_resp", {}).get("status_code", -1)
+    if status_code != 0:
+        return card
 
-    # Step 3: Download audio
-    resp = await client.get(
-        f"{MINIMAX_API_BASE}/files/retrieve_content",
-        params={"file_id": file_id},
-        headers=headers,
-        timeout=60,
-    )
-    resp.raise_for_status()
-    audio_path.write_bytes(resp.content)
+    audio_b64 = data["data"]["audio"]
+    # Fix padding if needed
+    audio_b64 += "=" * (-len(audio_b64) % 4)
+    audio_bytes = base64.b64decode(audio_b64)
+    audio_path.write_bytes(audio_bytes)
 
     return card.model_copy(update={"audio_file": str(audio_path)})
 
