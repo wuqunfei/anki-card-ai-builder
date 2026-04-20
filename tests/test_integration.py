@@ -67,7 +67,9 @@ class TestFullPipeline(unittest.TestCase):
             self.assertEqual(cards_data[0]["part_of_speech"], "noun")
             self.assertIn("🎉", cards_data[0]["example_sentence"])
 
-            # Verify .apkg
+            # run no longer auto-exports — export separately
+            result2 = runner.invoke(main, ["export", "--deck", "TestDeck"])
+            self.assertEqual(result2.exit_code, 0, msg=result2.output)
             apkg_path = Path("output/TestDeck.apkg")
             self.assertTrue(apkg_path.exists())
             self.assertTrue(zipfile.is_zipfile(apkg_path))

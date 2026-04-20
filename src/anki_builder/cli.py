@@ -136,6 +136,33 @@ def media(no_images: bool, no_audio: bool):
 
 
 @main.command()
+def review():
+    """Show cards and media for manual review before export."""
+    state = StateManager(WORK_DIR)
+    cards = state.load_cards()
+
+    if not cards:
+        click.echo("No cards found. Run 'ingest' first.")
+        return
+
+    click.echo(f"\n{len(cards)} cards ready for review.\n")
+    click.echo(f"Media folder: {state.media_dir.resolve()}\n")
+
+    for i, card in enumerate(cards, 1):
+        click.echo(f"[{i}] {card.word}")
+        click.echo(f"    Translation:  {card.translation or '(missing)'}")
+        click.echo(f"    Pronunciation: {card.pronunciation or '(missing)'}")
+        click.echo(f"    Example:      {card.example_sentence or '(missing)'}")
+        click.echo(f"    Mnemonic:     {card.mnemonic or '(missing)'}")
+        click.echo(f"    Audio:        {'✓' if card.audio_file else '✗'}")
+        click.echo(f"    Image:        {'✓' if card.image_file else '✗'}")
+        click.echo()
+
+    click.echo(f"Review images and audio in: {state.media_dir.resolve()}")
+    click.echo("When ready, run: anki-builder export --deck \"Your Deck Name\"")
+
+
+@main.command()
 @click.option("--deck", "deck_name", default=None, help="Deck name")
 @click.option("--output", "output_path", default=None, help="Output .apkg file path")
 @click.option("--prune", is_flag=True, help="Remove cards not in current source")
@@ -162,7 +189,7 @@ def export(deck_name: str | None, output_path: str | None, prune: bool):
 @click.option("--source-lang", "source_language", default=None)
 def run(input_path: str, target_language: str, deck_name: str | None,
         no_images: bool, no_audio: bool, source_language: str | None):
-    """Run full pipeline: ingest → enrich → media → export."""
+    """Run pipeline: ingest → enrich → media → review. Export separately after review."""
     config = load_config(WORK_DIR)
     state = StateManager(WORK_DIR)
     src_lang = source_language or config.default_source_language
@@ -212,9 +239,10 @@ def run(input_path: str, target_language: str, deck_name: str | None,
     state.save_cards(updated)
     click.echo("  Media complete.")
 
-    # Export
+    # Review prompt
+    click.echo(f"\nStep 4/4: Review your cards and media.")
+    click.echo(f"  Media folder: {state.media_dir.resolve()}")
+    click.echo(f"  Cards: {len(updated)}")
+    click.echo(f"\nRun 'anki-builder review' to see card details.")
     name = deck_name or config.export.default_deck_name
-    out = Path(config.export.output_dir) / f"{name}.apkg"
-    click.echo(f"Step 4/4: Exporting to {out}...")
-    export_apkg(updated, out, name)
-    click.echo(f"Done! Created {out} with {len(updated)} cards.")
+    click.echo(f"When ready, run: anki-builder export --deck \"{name}\"")
