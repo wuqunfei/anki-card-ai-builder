@@ -22,7 +22,7 @@ class StateManager:
         data = [card.model_dump() for card in cards]
         self.cards_file.write_text(json.dumps(data, indent=2, ensure_ascii=False))
 
-    def merge_cards(self, new_cards: list[Card], prune: bool = True) -> list[Card]:
+    def merge_cards(self, new_cards: list[Card], prune: bool = False) -> list[Card]:
         existing = self.load_cards()
         existing_map: dict[tuple[str, str], Card] = {
             (c.word, c.target_language): c for c in existing

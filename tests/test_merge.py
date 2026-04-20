@@ -28,7 +28,7 @@ class TestMerge(unittest.TestCase):
         ]
 
         merged = state.merge_cards(new_cards)
-        self.assertEqual(len(merged), 2)
+        self.assertEqual(len(merged), 3)  # dog + bird + cat (kept by default)
         # dog keeps old ID and enriched data
         dog = next(c for c in merged if c.word == "dog")
         self.assertEqual(dog.id, "id-1")
@@ -36,6 +36,9 @@ class TestMerge(unittest.TestCase):
         # bird is new
         bird = next(c for c in merged if c.word == "bird")
         self.assertIsNone(bird.translation)
+        # cat is kept from existing (not pruned by default)
+        cat = next(c for c in merged if c.word == "cat")
+        self.assertEqual(cat.translation, "Katze")
 
     def test_merge_with_prune(self):
         tmpdir = tempfile.mkdtemp()
