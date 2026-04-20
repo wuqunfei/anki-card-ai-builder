@@ -75,7 +75,7 @@ class Card(BaseModel):
     translation: str | None
     pronunciation: str | None  # IPA for en/fr, pinyin for zh
     example_sentence: str | None  # Kid-friendly with emojis
-    sentence_translation: str | None
+    sentence_translation: str | None  # Kid-friendly with emojis
     part_of_speech: str | None
     tags: list[str]
     audio_file: str | None   # Path in media/
