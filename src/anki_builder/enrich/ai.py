@@ -88,7 +88,12 @@ def enrich_cards(
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
         )
-        content = response.content[0].text
+        # Find the text block (skip ThinkingBlock if present)
+        content = ""
+        for block in response.content:
+            if hasattr(block, "text"):
+                content = block.text
+                break
         items = _parse_enrichment_response(content)
 
         # Match enriched items back to cards
