@@ -25,7 +25,7 @@ input/vocab.xlsx
 |-----------------------------------|-----------------------|
 | PDF text extraction               | pymupdf (local, free) |
 | OCR (images, scanned PDFs)        | DeepSeek vision       |
-| AI enrichment (translations, etc.)| MiniMax text          |
+| AI enrichment (translations, etc.)| MiniMax text (Anthropic-compatible API) |
 | Audio generation                  | MiniMax T2A async     |
 | Image generation                  | MiniMax image         |
 
@@ -120,7 +120,7 @@ Each extracted item becomes a partial card. Fields found in the source are fille
 
 ## AI Enrichment
 
-Takes partial cards and fills missing fields using MiniMax text generation API.
+Takes partial cards and fills missing fields using MiniMax text API (Anthropic-compatible — uses `anthropic` Python SDK with MiniMax base URL).
 
 ### Behavior
 - Batches cards (up to ~20 per API call)
@@ -232,6 +232,7 @@ API keys loaded from environment variables, never stored in the config file dire
 - `openpyxl` — Excel reading
 - `pymupdf` — PDF text extraction
 - `genanki` — Anki package generation
-- `httpx` — Async HTTP client for API calls
+- `anthropic` — Anthropic SDK (used for MiniMax text API)
+- `httpx` — Async HTTP client for MiniMax media/image and DeepSeek APIs
 - `pydantic` — Data validation for card schema
 - `pyyaml` — Config file parsing
