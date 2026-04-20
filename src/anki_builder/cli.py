@@ -9,6 +9,7 @@ from anki_builder.state import StateManager
 from anki_builder.ingest.excel import ingest_excel
 from anki_builder.ingest.pdf import ingest_pdf
 from anki_builder.ingest.image import ingest_image
+from anki_builder.ingest.gdrive import ingest_gdrive_folder, GDRIVE_URL_PATTERN
 from anki_builder.enrich.ai import enrich_cards
 from anki_builder.media.audio import generate_audio_batch
 from anki_builder.media.image import generate_image_batch
@@ -18,7 +19,10 @@ WORK_DIR = Path(".anki-builder")
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp"}
 
 
-def _detect_input_type(path: Path) -> str:
+def _detect_input_type(path_or_url: str) -> str:
+    if GDRIVE_URL_PATTERN.search(path_or_url):
+        return "gdrive"
+    path = Path(path_or_url)
     suffix = path.suffix.lower()
     if suffix in (".xlsx", ".csv"):
         return "excel"
@@ -37,7 +41,7 @@ def main():
 
 
 @main.command()
-@click.option("--input", "input_path", required=True, type=click.Path(exists=True), help="Input file path")
+@click.option("--input", "input_path", required=True, type=str, help="Input file path or Google Drive folder URL")
 @click.option("--lang", "target_language", required=True, help="Target language code (en, fr, zh)")
 @click.option("--source-lang", "source_language", default=None, help="Source language code (default: from config)")
 @click.option("--column-map", type=str, default=None, help="Column mapping as key=value pairs, comma-separated")
@@ -46,20 +50,24 @@ def ingest(input_path: str, target_language: str, source_language: str | None, c
     config = load_config(WORK_DIR)
     state = StateManager(WORK_DIR)
     src_lang = source_language or config.default_source_language
-    path = Path(input_path)
-    input_type = _detect_input_type(path)
+    input_type = _detect_input_type(input_path)
 
     col_map = None
     if column_map:
         col_map = dict(pair.split("=") for pair in column_map.split(","))
 
-    click.echo(f"Ingesting {path.name} as {input_type}...")
+    click.echo(f"Ingesting {input_path} as {input_type}...")
 
-    if input_type == "excel":
+    if input_type == "gdrive":
+        cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.deepseek_api_key, src_lang)
+    elif input_type == "excel":
+        path = Path(input_path)
         cards = ingest_excel(path, target_language, src_lang, col_map)
     elif input_type == "pdf":
+        path = Path(input_path)
         cards = ingest_pdf(path, target_language, config.deepseek_api_key, src_lang)
     elif input_type == "image":
+        path = Path(input_path)
         cards = ingest_image(path, target_language, config.deepseek_api_key, src_lang)
 
     merged = state.merge_cards(cards)
@@ -146,7 +154,7 @@ def export(deck_name: str | None, output_path: str | None, prune: bool):
 
 
 @main.command()
-@click.option("--input", "input_path", required=True, type=click.Path(exists=True))
+@click.option("--input", "input_path", required=True, type=str)
 @click.option("--lang", "target_language", required=True)
 @click.option("--deck", "deck_name", default=None)
 @click.option("--no-images", is_flag=True)
@@ -158,16 +166,20 @@ def run(input_path: str, target_language: str, deck_name: str | None,
     config = load_config(WORK_DIR)
     state = StateManager(WORK_DIR)
     src_lang = source_language or config.default_source_language
-    path = Path(input_path)
-    input_type = _detect_input_type(path)
+    input_type = _detect_input_type(input_path)
 
     # Ingest
-    click.echo(f"Step 1/4: Ingesting {path.name}...")
-    if input_type == "excel":
+    click.echo(f"Step 1/4: Ingesting {input_path}...")
+    if input_type == "gdrive":
+        cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.deepseek_api_key, src_lang)
+    elif input_type == "excel":
+        path = Path(input_path)
         cards = ingest_excel(path, target_language, src_lang)
     elif input_type == "pdf":
+        path = Path(input_path)
         cards = ingest_pdf(path, target_language, config.deepseek_api_key, src_lang)
     elif input_type == "image":
+        path = Path(input_path)
         cards = ingest_image(path, target_language, config.deepseek_api_key, src_lang)
 
     merged = state.merge_cards(cards)

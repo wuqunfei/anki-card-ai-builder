@@ -31,6 +31,10 @@ class Config(BaseModel):
     def deepseek_api_key(self) -> str:
         return os.environ.get("DEEPSEEK_API_KEY", "")
 
+    @property
+    def google_api_key(self) -> str:
+        return os.environ.get("GOOGLE_API_KEY", "")
+
 
 def load_config(work_dir: Path) -> Config:
     config_path = work_dir / "config.yaml"
