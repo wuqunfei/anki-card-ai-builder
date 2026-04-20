@@ -22,18 +22,19 @@ class StateManager:
         data = [card.model_dump() for card in cards]
         self.cards_file.write_text(json.dumps(data, indent=2, ensure_ascii=False))
 
-    def merge_cards(self, new_cards: list[Card]) -> list[Card]:
+    def merge_cards(self, new_cards: list[Card], prune: bool = True) -> list[Card]:
         existing = self.load_cards()
         existing_map: dict[tuple[str, str], Card] = {
             (c.word, c.target_language): c for c in existing
         }
 
         merged: list[Card] = []
+        seen_keys: set[tuple[str, str]] = set()
         for card in new_cards:
             key = (card.word, card.target_language)
+            seen_keys.add(key)
             if key in existing_map:
-                old = existing_map.pop(key)
-                # Keep enriched fields from existing card
+                old = existing_map[key]
                 update_data = {}
                 for field in ["translation", "pronunciation", "example_sentence",
                               "sentence_translation", "mnemonic", "part_of_speech",
@@ -42,12 +43,17 @@ class StateManager:
                     new_val = getattr(card, field)
                     if old_val is not None and new_val is None:
                         update_data[field] = old_val
-                # Preserve ID and status from existing
                 update_data["id"] = old.id
                 if old.status != "extracted":
                     update_data["status"] = old.status
                 merged.append(card.model_copy(update=update_data))
             else:
                 merged.append(card)
+
+        # Keep cards not in new set (unless pruning)
+        if not prune:
+            for key, card in existing_map.items():
+                if key not in seen_keys:
+                    merged.append(card)
 
         return merged
