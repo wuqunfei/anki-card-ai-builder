@@ -111,9 +111,7 @@ def media(no_images: bool, no_audio: bool):
 
     if not no_audio and config.media.audio_enabled:
         click.echo(f"Generating audio for {len(cards)} cards...")
-        cards = asyncio.run(generate_audio_batch(
-            cards, state.media_dir, config.minimax_api_key, config.media.concurrency,
-        ))
+        cards = generate_audio_batch(cards, state.media_dir)
 
     if not no_images and config.media.image_enabled:
         click.echo(f"Generating images for {len(cards)} cards...")
@@ -222,9 +220,7 @@ def run(input_path: str, target_language: str, deck_name: str | None,
     # Media
     click.echo("Step 3/4: Generating media...")
     if not no_audio and config.media.audio_enabled:
-        enriched = asyncio.run(generate_audio_batch(
-            enriched, state.media_dir, config.minimax_api_key, config.media.concurrency,
-        ))
+        enriched = generate_audio_batch(enriched, state.media_dir)
     if not no_images and config.media.image_enabled:
         enriched = asyncio.run(generate_image_batch(
             enriched, state.media_dir, config.minimax_api_key, config.media.concurrency,

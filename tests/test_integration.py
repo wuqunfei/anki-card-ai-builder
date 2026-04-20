@@ -42,12 +42,10 @@ class TestFullPipeline(unittest.TestCase):
             return enriched
         mock_enrich.side_effect = fake_enrich
 
-        # Mock media: just return cards unchanged (side_effect must be a coroutine function)
-        async def fake_audio(cards, media_dir, api_key, concurrency):
-            return cards
+        # Mock media: just return cards unchanged
+        mock_audio.side_effect = lambda cards, media_dir: cards
         async def fake_image(cards, media_dir, api_key, concurrency):
             return cards
-        mock_audio.side_effect = fake_audio
         mock_image.side_effect = fake_image
 
         runner = CliRunner()
