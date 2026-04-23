@@ -17,16 +17,16 @@ class Card(BaseModel):
     # --- SOURCE (Native Language) ---
     source_word: str                           # Native language word
     source_language: str = "de"                # Native language ISO
-    source_gender: str | None = None           # Gender if noun ("m", "f", "n")
-    source_example_sentence: str | None = None # Native language sentence
+    source_gender: str | None = None           # Grammatical Gender: e.g. German if noun ("m", "f", "n")
+    source_example_sentence: str | None = None # Native language sentence with emojis
 
     # --- TARGET (Learning Language) ---
     target_word: str | None = None             # Learning language word
     target_language: str                       # Learning language ISO (no default)
-    target_gender: str | None = None           # Target gender if noun
+    target_gender: str | None = None           # Target Grammatical Gender: e.g. French if noun ("m", "f")
     target_pronunciation: str | None = None    # IPA, Pinyin, or Romaji
     target_part_of_speech: str | None = None   # noun, verb, adjective, etc.
-    target_example_sentence: str | None = None # Target sentence
+    target_example_sentence: str | None = None # Target sentence with emojis
 
     # Word breakdown as HTML with soft colored parts:
     # - Prefix (blue): <span style="color:#5b9bd5">...</span>
