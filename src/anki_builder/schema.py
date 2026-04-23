@@ -10,10 +10,10 @@ class Card(BaseModel):
     target_language: str = "en"
     translation: str | None = None
     pronunciation: str | None = None  # IPA for en/fr, pinyin for zh
+    part_of_speech: str | None = None
+    mnemonic: str | None = None  # HTML rich text: prefix (blue) + root (red) + suffix (green)
     example_sentence: str | None = None
     sentence_translation: str | None = None
-    mnemonic: str | None = None  # HTML rich text: prefix (blue) + root (red) + suffix (green)
-    part_of_speech: str | None = None
     tags: list[str] = Field(default_factory=list)
     audio_file: str | None = None
     image_file: str | None = None

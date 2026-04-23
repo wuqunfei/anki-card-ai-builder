@@ -31,7 +31,7 @@ def _build_enrichment_prompt(cards: list[Card], source_language: str) -> str:
         f"You are a friendly language tutor for German-speaking kids aged 9-12.\n\n"
         f"For each word below, fill in the missing fields. The source language is "
         f"'{source_language}'. Keep sentences simple, natural, and kid-friendly with "
-        f"emoji sprinkled in.\n\n"
+        f"serval emojis sprinkled in.\n\n"
         f"For EVERY word, you MUST generate:\n"
         f"- `part_of_speech`: the grammatical category (noun, verb, adjective, etc.)\n"
         f"- `mnemonic`: word breakdown as HTML with soft colored parts:\n"
@@ -86,7 +86,7 @@ def enrich_cards(
         prompt = _build_enrichment_prompt(batch, source_language)
         response = client.messages.create(
             model=MINIMAX_MODEL,
-            max_tokens=4096,
+            max_tokens=16384,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
         )

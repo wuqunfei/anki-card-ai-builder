@@ -12,8 +12,8 @@ MINIMAX_IMAGE_MODEL = "image-01"
 
 def _build_image_prompt(word: str, target_language: str) -> str:
     return (
-        f"Simple, colorful illustration of '{word}' suitable for children aged 9-12. "
-        f"Friendly cartoon style, no text in the image."
+        f"Simple, colorful illustration of '{word}' suitable for kids "
+        f"Friendly cartoon style, NO text and NO words in the image."
     )
 
 
