@@ -35,7 +35,7 @@ async def generate_image_for_card(
     headers = {"Authorization": f"Bearer {api_key}"}
     payload = {
         "model": MINIMAX_IMAGE_MODEL,
-        "prompt": _build_image_prompt(card.word, card.target_language),
+        "prompt": _build_image_prompt(card.source_word, card.target_language),
         "aspect_ratio": "1:1",
         "response_format": "base64",
     }

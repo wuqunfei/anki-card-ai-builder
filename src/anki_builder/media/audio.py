@@ -24,7 +24,7 @@ def generate_audio_for_card(card: Card, media_dir: Path) -> Card:
         return card.model_copy(update={"audio_file": str(audio_path)})
 
     lang = LANG_MAP.get(card.target_language, card.target_language)
-    tts = gTTS(text=card.word, lang=lang)
+    tts = gTTS(text=card.source_word, lang=lang)
     tts.save(str(audio_path))
 
     return card.model_copy(update={"audio_file": str(audio_path)})
