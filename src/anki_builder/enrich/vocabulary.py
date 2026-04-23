@@ -11,8 +11,8 @@ def _build_text_prompt(text: str, target_language: str, source_language: str) ->
     return (
         f"Extract vocabulary words from the following text. The text is in "
         f"{target_language} (target language) and {source_language} (source language).\n\n"
-        f"For each word, extract any available information: word, translation, "
-        f"pronunciation, example_sentence, part_of_speech.\n\n"
+        f"For each word, extract any available information: source_word, target_word, "
+        f"target_pronunciation, target_example_sentence, target_part_of_speech.\n\n"
         f"Return ONLY a JSON array of objects. Each object should have the fields "
         f"that are present in the source. Do not generate content that isn't in "
         f"the source text — only extract what's there.\n\n"

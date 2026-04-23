@@ -16,15 +16,15 @@ def _batch_cards(cards: list[Card], batch_size: int = 20) -> list[list[Card]]:
 def _build_enrichment_prompt(cards: list[Card], source_language: str) -> str:
     card_list = []
     for c in cards:
-        entry = {"word": c.word, "target_language": c.target_language}
-        if c.translation:
-            entry["translation"] = c.translation
-        if c.pronunciation:
-            entry["pronunciation"] = c.pronunciation
-        if c.example_sentence:
-            entry["example_sentence"] = c.example_sentence
-        if c.sentence_translation:
-            entry["sentence_translation"] = c.sentence_translation
+        entry = {"source_word": c.source_word, "target_language": c.target_language}
+        if c.target_word:
+            entry["target_word"] = c.target_word
+        if c.target_pronunciation:
+            entry["target_pronunciation"] = c.target_pronunciation
+        if c.target_example_sentence:
+            entry["target_example_sentence"] = c.target_example_sentence
+        if c.source_example_sentence:
+            entry["source_example_sentence"] = c.source_example_sentence
         card_list.append(entry)
 
     return (
@@ -33,22 +33,23 @@ def _build_enrichment_prompt(cards: list[Card], source_language: str) -> str:
         f"'{source_language}'. Keep sentences simple, natural, and kid-friendly with "
         f"serval emojis sprinkled in.\n\n"
         f"For EVERY word, you MUST generate:\n"
-        f"- `part_of_speech`: the grammatical category (noun, verb, adjective, etc.)\n"
-        f"- `mnemonic`: word breakdown as HTML with soft colored parts:\n"
+        f"- `target_part_of_speech`: the grammatical category (noun, verb, adjective, etc.)\n"
+        f"- `target_mnemonic`: word breakdown as HTML with soft colored parts:\n"
         f'  prefix in soft blue: <span style="color:#5b9bd5">un-</span>\n'
         f'  root in soft coral: <span style="color:#e07b7b">break</span>\n'
         f'  suffix in soft green: <span style="color:#6dba6d">-able</span>\n'
         f"  Join parts with \" + \". ONLY provide a mnemonic if the word has meaningful parts "
         f"(prefixes, suffixes, or compound structure). If it's a simple word with no useful "
-        f"breakdown (e.g. \"glove\", \"cat\", \"dog\"), set mnemonic to null.\n\n"
+        f"breakdown (e.g. \"glove\", \"cat\", \"dog\"), set target_mnemonic to null.\n\n"
         f"For fields that are already filled, keep the existing value.\n"
         f"For missing fields, generate:\n"
-        f"- `translation`: translate to {source_language}\n"
-        f"- `pronunciation`: IPA for English/French, pinyin with tone marks for Chinese\n"
-        f"- `example_sentence`: a kid-friendly sentence with emojis\n"
-        f"- `sentence_translation`: translation of the example to {source_language}, also kid-friendly with emojis\n\n"
+        f"- `target_word`: translate to {source_language}\n"
+        f"- `target_pronunciation`: IPA for English/French, pinyin with tone marks for Chinese\n"
+        f"- `target_example_sentence`: a kid-friendly sentence with emojis\n"
+        f"- `source_example_sentence`: translation of the example to {source_language}, also kid-friendly with emojis\n\n"
         f"Return ONLY a JSON array with one object per word. Each object must have all fields: "
-        f"word, translation, pronunciation, example_sentence, sentence_translation, mnemonic, part_of_speech.\n\n"
+        f"source_word, target_word, target_pronunciation, target_example_sentence, "
+        f"source_example_sentence, target_mnemonic, target_part_of_speech.\n\n"
         f"Words:\n{json.dumps(card_list, ensure_ascii=False)}"
     )
 
@@ -90,7 +91,6 @@ def enrich_cards(
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
         )
-        # Find the text block (skip ThinkingBlock if present)
         content = ""
         for block in response.content:
             if hasattr(block, "text"):
@@ -98,18 +98,16 @@ def enrich_cards(
                 break
         items = _parse_enrichment_response(content)
 
-        # Match enriched items back to cards
-        item_map = {item["word"]: item for item in items if "word" in item}
+        item_map = {item["source_word"]: item for item in items if "source_word" in item}
         for card in batch:
-            if card.word in item_map:
-                item = item_map[card.word]
+            if card.source_word in item_map:
+                item = item_map[card.source_word]
                 update = {"status": "enriched"}
-                for field in ["translation", "pronunciation", "example_sentence",
-                              "sentence_translation"]:
+                for field in ["target_word", "target_pronunciation",
+                              "target_example_sentence", "source_example_sentence"]:
                     if getattr(card, field) is None and field in item:
                         update[field] = item[field]
-                # Always overwrite these
-                for field in ["mnemonic", "part_of_speech"]:
+                for field in ["target_mnemonic", "target_part_of_speech"]:
                     if field in item:
                         update[field] = item[field]
                 enriched.append(card.model_copy(update=update))

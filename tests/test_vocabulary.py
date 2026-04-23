@@ -22,19 +22,19 @@ class TestVocabularyExtraction(unittest.TestCase):
 
     def test_parse_vocabulary_response(self):
         response_text = json.dumps([
-            {"word": "dog", "translation": "Hund"},
-            {"word": "cat", "translation": "Katze"},
+            {"source_word": "dog", "target_word": "Hund"},
+            {"source_word": "cat", "target_word": "Katze"},
         ])
         items = _parse_vocabulary_response(response_text)
         self.assertEqual(len(items), 2)
-        self.assertEqual(items[0]["word"], "dog")
-        self.assertEqual(items[1]["translation"], "Katze")
+        self.assertEqual(items[0]["source_word"], "dog")
+        self.assertEqual(items[1]["target_word"], "Katze")
 
     def test_parse_response_with_markdown_code_block(self):
-        response_text = '```json\n[{"word": "dog", "translation": "Hund"}]\n```'
+        response_text = '```json\n[{"source_word": "dog", "target_word": "Hund"}]\n```'
         items = _parse_vocabulary_response(response_text)
         self.assertEqual(len(items), 1)
-        self.assertEqual(items[0]["word"], "dog")
+        self.assertEqual(items[0]["source_word"], "dog")
 
     @patch("anki_builder.enrich.vocabulary.anthropic.Anthropic")
     def test_extract_vocabulary_with_text(self, mock_anthropic_cls):
@@ -42,7 +42,7 @@ class TestVocabularyExtraction(unittest.TestCase):
         mock_anthropic_cls.return_value = mock_client
 
         mock_block = MagicMock()
-        mock_block.text = json.dumps([{"word": "dog", "translation": "Hund"}])
+        mock_block.text = json.dumps([{"source_word": "dog", "target_word": "Hund"}])
         mock_response = MagicMock()
         mock_response.content = [mock_block]
         mock_client.messages.create.return_value = mock_response
@@ -54,7 +54,7 @@ class TestVocabularyExtraction(unittest.TestCase):
             minimax_api_key="test-key",
         )
         self.assertEqual(len(items), 1)
-        self.assertEqual(items[0]["word"], "dog")
+        self.assertEqual(items[0]["source_word"], "dog")
         mock_client.messages.create.assert_called_once()
 
 
