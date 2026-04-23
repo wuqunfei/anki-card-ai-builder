@@ -22,7 +22,7 @@ IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp", ".heic", 
 def _words_to_cards(words_str: str, target_language: str, source_language: str) -> list[Card]:
     words = [w.strip() for w in words_str.split(",") if w.strip()]
     return [
-        Card(word=w, target_language=target_language, source_language=source_language, source="cli")
+        Card(source_word=w, target_language=target_language, source_language=source_language, source="cli")
         for w in words
     ]
 
@@ -165,13 +165,13 @@ def review():
     click.echo(f"Media folder: {state.media_dir.resolve()}\n")
 
     for i, card in enumerate(cards, 1):
-        click.echo(f"[{i}] {card.word}")
-        click.echo(f"    Translation:  {card.translation or '(missing)'}")
-        click.echo(f"    Pronunciation: {card.pronunciation or '(missing)'}")
-        click.echo(f"    Example:      {card.example_sentence or '(missing)'}")
-        click.echo(f"    Mnemonic:     {card.mnemonic or '(missing)'}")
-        click.echo(f"    Audio:        {'✓' if card.audio_file else '✗'}")
-        click.echo(f"    Image:        {'✓' if card.image_file else '✗'}")
+        click.echo(f"[{i}] {card.source_word}")
+        click.echo(f"    Target Word:    {card.target_word or '(missing)'}")
+        click.echo(f"    Pronunciation:  {card.target_pronunciation or '(missing)'}")
+        click.echo(f"    Example:        {card.target_example_sentence or '(missing)'}")
+        click.echo(f"    Mnemonic:       {card.target_mnemonic or '(missing)'}")
+        click.echo(f"    Audio:          {'✓' if card.audio_file else '✗'}")
+        click.echo(f"    Image:          {'✓' if card.image_file else '✗'}")
         click.echo()
 
     click.echo(f"Review images and audio in: {state.media_dir.resolve()}")

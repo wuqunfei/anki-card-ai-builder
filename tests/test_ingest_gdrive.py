@@ -29,7 +29,7 @@ class TestGDriveIngestion(unittest.TestCase):
         ]
         mock_download.return_value = Path(tempfile.mktemp(suffix=".xlsx"))
         mock_ingest_excel.return_value = [
-            Card(word="dog", target_language="en", source="gdrive"),
+            Card(source_word="dog", target_language="en", source="gdrive"),
         ]
 
         cards = ingest_gdrive_folder(
@@ -39,7 +39,7 @@ class TestGDriveIngestion(unittest.TestCase):
             minimax_api_key="test-key",
         )
         self.assertEqual(len(cards), 1)
-        self.assertEqual(cards[0].word, "dog")
+        self.assertEqual(cards[0].source_word, "dog")
         mock_list.assert_called_once_with("test123", "test-key")
 
     @patch("anki_builder.ingest.gdrive.download_file")

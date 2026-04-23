@@ -1,4 +1,3 @@
-# tests/test_integration.py
 import json
 import tempfile
 import unittest
@@ -27,22 +26,20 @@ class TestFullPipeline(unittest.TestCase):
     @patch("anki_builder.cli.generate_audio_batch")
     @patch("anki_builder.cli.enrich_cards")
     def test_full_run_command(self, mock_enrich, mock_audio, mock_image):
-        # Mock enrich: add missing fields
         def fake_enrich(cards, api_key, src_lang):
             enriched = []
             for c in cards:
                 enriched.append(c.model_copy(update={
-                    "pronunciation": "/test/",
-                    "example_sentence": "Test sentence! 🎉",
-                    "sentence_translation": "Testsatz! 🎉",
-                    "mnemonic": '<span style="color:red">test</span>',
-                    "part_of_speech": "noun",
+                    "target_pronunciation": "/test/",
+                    "target_example_sentence": "Test sentence! 🎉",
+                    "source_example_sentence": "Testsatz! 🎉",
+                    "target_mnemonic": '<span style="color:red">test</span>',
+                    "target_part_of_speech": "noun",
                     "status": "enriched",
                 }))
             return enriched
         mock_enrich.side_effect = fake_enrich
 
-        # Mock media: just return cards unchanged
         mock_audio.side_effect = lambda cards, media_dir: cards
         async def fake_image(cards, media_dir, api_key, concurrency):
             return cards
@@ -58,14 +55,12 @@ class TestFullPipeline(unittest.TestCase):
             )
             self.assertEqual(result.exit_code, 0, msg=result.output)
 
-            # Verify cards.json
             cards_data = json.loads(Path(".anki-builder/cards.json").read_text())
             self.assertEqual(len(cards_data), 2)
-            self.assertEqual(cards_data[0]["word"], "dog")
-            self.assertEqual(cards_data[0]["part_of_speech"], "noun")
-            self.assertIn("🎉", cards_data[0]["example_sentence"])
+            self.assertEqual(cards_data[0]["source_word"], "dog")
+            self.assertEqual(cards_data[0]["target_part_of_speech"], "noun")
+            self.assertIn("🎉", cards_data[0]["target_example_sentence"])
 
-            # run no longer auto-exports — export separately
             result2 = runner.invoke(main, ["export", "--deck", "TestDeck"])
             self.assertEqual(result2.exit_code, 0, msg=result2.output)
             apkg_path = Path("output/TestDeck.apkg")
