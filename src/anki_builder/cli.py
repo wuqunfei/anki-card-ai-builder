@@ -86,7 +86,7 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
             cards = ingest_pdf(path, target_language, config.minimax_api_key, src_lang)
         elif input_type == "image":
             path = Path(input_path)
-            cards = ingest_image(path, target_language, config.minimax_api_key, src_lang)
+            cards = ingest_image(path, target_language, src_lang)
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)
@@ -233,7 +233,7 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
             cards = ingest_pdf(path, target_language, config.minimax_api_key, src_lang)
         elif input_type == "image":
             path = Path(input_path)
-            cards = ingest_image(path, target_language, config.minimax_api_key, src_lang)
+            cards = ingest_image(path, target_language, src_lang)
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)

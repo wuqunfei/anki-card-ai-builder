@@ -84,7 +84,7 @@ def ingest_gdrive_folder(
             elif suffix in PDF_EXTENSIONS:
                 cards = ingest_pdf(local_path, target_language, minimax_api_key, source_language)
             elif suffix in IMAGE_EXTENSIONS:
-                cards = ingest_image(local_path, target_language, minimax_api_key, source_language)
+                cards = ingest_image(local_path, target_language, source_language)
             else:
                 continue
 

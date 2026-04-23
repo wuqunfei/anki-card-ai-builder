@@ -63,12 +63,7 @@ class TestIngestImage(unittest.TestCase):
         mock_client_cls.return_value = mock_client
         mock_pil_open.return_value = MagicMock()
 
-        cards = ingest_image(
-            Path("test.png"),
-            target_language="fr",
-            minimax_api_key="test-key",
-            source_language="de",
-        )
+        cards = ingest_image(Path("test.png"), target_language="fr", source_language="de")
 
         self.assertEqual(len(cards), 2)
         self.assertEqual(cards[0].source_word, "Apfel")
@@ -93,11 +88,7 @@ class TestIngestImage(unittest.TestCase):
         mock_client_cls.return_value = mock_client
         mock_pil_open.return_value = MagicMock()
 
-        cards = ingest_image(
-            Path("test.jpg"),
-            target_language="fr",
-            minimax_api_key="test-key",
-        )
+        cards = ingest_image(Path("test.jpg"), target_language="fr")
 
         self.assertEqual(len(cards), 2)
 
@@ -108,12 +99,7 @@ class TestIngestImage(unittest.TestCase):
         mock_client_cls.return_value = mock_client
         mock_pil_open.return_value = MagicMock()
 
-        cards = ingest_image(
-            Path("test.png"),
-            target_language="zh",
-            minimax_api_key="test-key",
-            source_language="en",
-        )
+        cards = ingest_image(Path("test.png"), target_language="zh", source_language="en")
 
         # Language params override whatever Gemini returned
         for card in cards:
@@ -129,11 +115,7 @@ class TestIngestImage(unittest.TestCase):
         mock_pil_open.return_value = MagicMock()
 
         with self.assertRaises(json.JSONDecodeError):
-            ingest_image(
-                Path("test.png"),
-                target_language="fr",
-                minimax_api_key="test-key",
-            )
+            ingest_image(Path("test.png"), target_language="fr")
 
 
 if __name__ == "__main__":

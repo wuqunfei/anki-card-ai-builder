@@ -14,12 +14,7 @@ def _load_system_prompt() -> str:
     return PROMPT_PATH.read_text(encoding="utf-8")
 
 
-def ingest_image(
-    path: Path,
-    target_language: str,
-    minimax_api_key: str,
-    source_language: str = "de",
-) -> list[Card]:
+def ingest_image(path: Path, target_language: str, source_language: str = "de") -> list[Card]:
     import os
     google_api_key = os.environ.get("GOOGLE_API_KEY", "")
     client = genai.Client(api_key=google_api_key)
