@@ -65,7 +65,8 @@ class StateManager:
                 for field in ["target_word", "target_pronunciation",
                               "target_example_sentence", "source_example_sentence",
                               "target_mnemonic", "target_part_of_speech",
-                              "audio_file", "image_file"]:
+                              "audio_file", "image_file",
+                              "target_example_audio"]:
                     old_val = getattr(old, field)
                     new_val = getattr(card, field)
                     if old_val is not None and new_val is None:

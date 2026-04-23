@@ -27,8 +27,11 @@ class Card(BaseModel):
     target_pronunciation: str | None = None    # IPA, Pinyin, or Romaji
     target_part_of_speech: str | None = None   # noun, verb, adjective, etc.
     target_example_sentence: str | None = None # Target sentence with emojis
+    target_example_audio: str | None = None    # Path to example sentence audio
+    target_synonyms: str | None= None  # Similar words (comma-separated)
+    target_antonyms: str | None = None  # Opposite words (comma-separated)
 
-    # Word breakdown as HTML with soft colored parts:
+    # Word breakdown as HTML with soft colored parts: Prefix + Root + Suffix
     # - Prefix (blue): <span style="color:#5b9bd5">...</span>
     # - Root (coral): <span style="color:#e07b7b">...</span>
     # - Suffix (green): <span style="color:#6dba6d">...</span>

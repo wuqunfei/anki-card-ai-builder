@@ -34,6 +34,8 @@ def _build_enrichment_prompt(cards: list[Card], source_language: str) -> str:
         f"serval emojis sprinkled in.\n\n"
         f"For EVERY word, you MUST generate:\n"
         f"- `target_part_of_speech`: the grammatical category (noun, verb, adjective, etc.)\n"
+        f"- `source_gender`: grammatical gender of the source word if it's a noun (\"m\", \"f\", \"n\"), otherwise null\n"
+        f"- `target_gender`: grammatical gender of the target word if it's a noun (\"m\", \"f\", \"n\"), otherwise null\n"
         f"- `target_mnemonic`: word breakdown as HTML with soft colored parts:\n"
         f'  prefix in soft blue: <span style="color:#5b9bd5">un-</span>\n'
         f'  root in soft coral: <span style="color:#e07b7b">break</span>\n'
@@ -45,11 +47,11 @@ def _build_enrichment_prompt(cards: list[Card], source_language: str) -> str:
         f"For missing fields, generate:\n"
         f"- `target_word`: translate to {source_language}\n"
         f"- `target_pronunciation`: IPA for English/French, pinyin with tone marks for Chinese\n"
-        f"- `target_example_sentence`: a kid-friendly sentence with emojis\n"
-        f"- `source_example_sentence`: translation of the example to {source_language}, also kid-friendly with emojis\n\n"
+        f"- `target_example_sentence`: a kid-friendly sentence in the TARGET language (the language of target_word) with emojis\n"
+        f"- `source_example_sentence`: translation of that sentence to {source_language}, also kid-friendly with emojis\n\n"
         f"Return ONLY a JSON array with one object per word. Each object must have all fields: "
         f"source_word, target_word, target_pronunciation, target_example_sentence, "
-        f"source_example_sentence, target_mnemonic, target_part_of_speech.\n\n"
+        f"source_example_sentence, target_mnemonic, target_part_of_speech, source_gender, target_gender.\n\n"
         f"Words:\n{json.dumps(card_list, ensure_ascii=False)}"
     )
 
@@ -107,7 +109,8 @@ def enrich_cards(
                               "target_example_sentence", "source_example_sentence"]:
                     if getattr(card, field) is None and field in item:
                         update[field] = item[field]
-                for field in ["target_mnemonic", "target_part_of_speech"]:
+                for field in ["target_mnemonic", "target_part_of_speech",
+                              "source_gender", "target_gender"]:
                     if field in item:
                         update[field] = item[field]
                 enriched.append(card.model_copy(update=update))

@@ -20,27 +20,50 @@ CARD_MODEL = genanki.Model(
         {"name": "TargetPartOfSpeech"},
         {"name": "Audio"},
         {"name": "Image"},
+        {"name": "ExampleAudio"},
     ],
     templates=[{
         "name": "Card 1",
         "qfmt": (
-            '<div style="text-align:center; font-size:24px; margin:20px;">'
-            "{{SourceWord}}"
+            '<div style="text-align:center; font-size:28px; font-weight:bold; margin:20px; color:#2c3e50;">'
+            "{{TargetWord}}"
             "</div>"
-            '<div style="text-align:center;">{{Image}}</div>'
+            '<div style="text-align:center; font-size:16px; color:#7f8c8d; margin-bottom:8px;">'
+            "{{TargetPronunciation}}"
+            "</div>"
+            '<div style="text-align:center; font-size:13px; color:#999; margin-bottom:12px;">'
+            "{{TargetPartOfSpeech}}"
+            "</div>"
+            '<div style="text-align:center; margin:10px;">{{Image}}</div>'
             '<div style="text-align:center;">{{Audio}}</div>'
         ),
         "afmt": (
             '{{FrontSide}}<hr id="answer">'
-            '<div style="text-align:center; font-size:20px; color:#333;">{{TargetWord}}</div>'
-            '<div style="text-align:center; font-size:14px; color:#666;">{{TargetPronunciation}}</div>'
+            '<div style="text-align:center; font-size:22px; color:#333; margin:10px;">{{SourceWord}}</div>'
             '<div style="text-align:center; font-size:14px; margin:10px;">{{TargetMnemonic}}</div>'
-            '<div style="text-align:center; font-size:16px; margin:10px;">{{TargetExampleSentence}}</div>'
+            '<div style="text-align:center; font-size:16px; margin:10px; color:#2c3e50;">{{TargetExampleSentence}}</div>'
+            '{{#ExampleAudio}}'
+            '<div style="text-align:center; margin:6px 0 10px;">{{ExampleAudio}}</div>'
+            '{{/ExampleAudio}}'
             '<div style="text-align:center; font-size:14px; color:#666;">{{SourceExampleSentence}}</div>'
-            '<div style="text-align:center; font-size:12px; color:#999;">{{TargetPartOfSpeech}}</div>'
         ),
     }],
 )
+
+
+GENDER_STYLE = {
+    "m": ("m.", "#5b9bd5"),  # soft blue
+    "f": ("f.", "#e07b7b"),  # soft red
+    "n": ("n.", "#555"),     # soft black
+}
+
+
+def _format_word_with_gender(word: str, gender: str | None) -> str:
+    """Format word with colored gender prefix: 'f. chien'."""
+    if gender and gender in GENDER_STYLE:
+        abbrev, color = GENDER_STYLE[gender]
+        return f'<span style="color:{color}; font-size:0.7em;">{abbrev}</span> {word}'
+    return word
 
 
 def _card_to_note(card: Card) -> tuple[genanki.Note, list[str]]:
@@ -58,11 +81,20 @@ def _card_to_note(card: Card) -> tuple[genanki.Note, list[str]]:
         image_field = f'<img src="{image_filename}" style="max-width:350px;">'
         media_files.append(card.image_file)
 
+    example_audio_field = ""
+    if card.target_example_audio and Path(card.target_example_audio).exists():
+        example_audio_filename = Path(card.target_example_audio).name
+        example_audio_field = f"[sound:{example_audio_filename}]"
+        media_files.append(card.target_example_audio)
+
+    source_display = _format_word_with_gender(card.source_word, card.source_gender)
+    target_display = _format_word_with_gender(card.target_word or "", card.target_gender)
+
     note = genanki.Note(
         model=CARD_MODEL,
         fields=[
-            card.source_word,
-            card.target_word or "",
+            source_display,
+            target_display,
             card.target_pronunciation or "",
             card.target_example_sentence or "",
             card.source_example_sentence or "",
@@ -70,6 +102,7 @@ def _card_to_note(card: Card) -> tuple[genanki.Note, list[str]]:
             card.target_part_of_speech or "",
             audio_field,
             image_field,
+            example_audio_field,
         ],
         guid=genanki.guid_for(card.id),
     )

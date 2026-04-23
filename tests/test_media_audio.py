@@ -21,13 +21,13 @@ class TestAudioGeneration(unittest.TestCase):
         media_dir = Path(tmpdir) / "media"
         media_dir.mkdir()
 
-        card = Card(source_word="dog", target_language="en", source="test")
+        card = Card(source_word="Hund", target_language="fr", source="test", target_word="chien")
         result = generate_audio_for_card(card, media_dir)
 
         self.assertIsNotNone(result.audio_file)
         self.assertIn("audio.mp3", result.audio_file)
         self.assertTrue(Path(result.audio_file).exists())
-        mock_gtts_cls.assert_called_once_with(text="dog", lang="en")
+        mock_gtts_cls.assert_called_once_with(text="chien", lang="fr")
 
     def test_skip_existing_audio(self):
         tmpdir = tempfile.mkdtemp()
