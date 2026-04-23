@@ -29,7 +29,7 @@ class TestExcelIngestion(unittest.TestCase):
         self.assertEqual(cards[0].source_word, "dog")
         self.assertEqual(cards[0].target_word, "Hund")
         self.assertEqual(cards[0].target_language, "en")
-        self.assertEqual(cards[0].source, str(path))
+
 
     def test_fuzzy_header_matching(self):
         tmpdir = tempfile.mkdtemp()

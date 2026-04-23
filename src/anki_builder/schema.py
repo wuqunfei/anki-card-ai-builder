@@ -12,8 +12,6 @@ class Card(BaseModel):
     tags: list[str] = Field(default_factory=list)
     audio_file: str | None = None
     image_file: str | None = None
-    source: str                                # How card was created ("cli", file path, etc.)
-
     # --- SOURCE (Native Language) ---
     source_word: str                           # Native language word
     source_language: str = "de"                # Native language ISO

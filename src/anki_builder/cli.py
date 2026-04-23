@@ -22,7 +22,7 @@ IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp", ".heic", 
 def _words_to_cards(words_str: str, target_language: str, source_language: str) -> list[Card]:
     words = [w.strip() for w in words_str.split(",") if w.strip()]
     return [
-        Card(source_word=w, target_language=target_language, source_language=source_language, source="cli")
+        Card(source_word=w, target_language=target_language, source_language=source_language)
         for w in words
     ]
 

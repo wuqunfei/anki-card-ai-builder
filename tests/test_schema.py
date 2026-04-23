@@ -8,7 +8,6 @@ class TestCard(unittest.TestCase):
             source_word="accomplish",
             source_language="de",
             target_language="en",
-            source="vocab.xlsx",
         )
         self.assertEqual(card.source_word, "accomplish")
         self.assertEqual(card.source_language, "de")
@@ -29,7 +28,7 @@ class TestCard(unittest.TestCase):
 
     def test_card_id_is_uuid(self):
         import uuid
-        card = Card(source_word="test", source_language="de", target_language="en", source="test")
+        card = Card(source_word="test", source_language="de", target_language="en")
         uuid.UUID(card.id)
 
     def test_card_serialization_roundtrip(self):
@@ -38,7 +37,6 @@ class TestCard(unittest.TestCase):
             source_language="de",
             target_language="en",
             target_word="dog",
-            source="vocab.xlsx",
         )
         data = card.model_dump()
         card2 = Card(**data)
@@ -49,7 +47,6 @@ class TestCard(unittest.TestCase):
             source_word="maison",
             source_language="de",
             target_language="fr",
-            source="test",
             unit="Unité 1",
             reference="Page 162",
             source_gender="f",
@@ -62,7 +59,7 @@ class TestCard(unittest.TestCase):
 
     def test_target_language_required(self):
         with self.assertRaises(Exception):
-            Card(source_word="test", source="test")
+            Card(source_word="test")
 
 
 if __name__ == "__main__":

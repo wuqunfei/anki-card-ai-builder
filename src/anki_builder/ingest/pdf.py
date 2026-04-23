@@ -41,7 +41,6 @@ def ingest_pdf(
         card_data = {
             "source_language": source_language,
             "target_language": target_language,
-            "source": str(path),
             **item,
         }
         if "source_word" in card_data:

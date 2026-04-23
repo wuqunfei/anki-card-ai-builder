@@ -13,16 +13,16 @@ class TestMerge(unittest.TestCase):
         state = StateManager(Path(tmpdir) / ".anki-builder")
 
         cards_v1 = [
-            Card(id="id-1", source_word="dog", target_language="en", source="v1",
+            Card(id="id-1", source_word="dog", target_language="en",
                  target_word="Hund", status="enriched"),
-            Card(id="id-2", source_word="cat", target_language="en", source="v1",
+            Card(id="id-2", source_word="cat", target_language="en",
                  target_word="Katze", status="enriched"),
         ]
         state.save_cards(cards_v1)
 
         new_cards = [
-            Card(source_word="dog", target_language="en", source="v2"),
-            Card(source_word="bird", target_language="en", source="v2"),
+            Card(source_word="dog", target_language="en"),
+            Card(source_word="bird", target_language="en"),
         ]
 
         merged = state.merge_cards(new_cards)
@@ -40,15 +40,15 @@ class TestMerge(unittest.TestCase):
         state = StateManager(Path(tmpdir) / ".anki-builder")
 
         cards_v1 = [
-            Card(id="id-1", source_word="dog", target_language="en", source="v1",
+            Card(id="id-1", source_word="dog", target_language="en",
                  target_word="Hund", status="enriched"),
-            Card(id="id-2", source_word="cat", target_language="en", source="v1",
+            Card(id="id-2", source_word="cat", target_language="en",
                  target_word="Katze", status="enriched"),
         ]
         state.save_cards(cards_v1)
 
         new_cards = [
-            Card(source_word="dog", target_language="en", source="v2"),
+            Card(source_word="dog", target_language="en"),
         ]
 
         merged = state.merge_cards(new_cards, prune=True)

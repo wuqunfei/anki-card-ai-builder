@@ -36,6 +36,7 @@ class StateManager:
         data = json.loads(self.cards_file.read_text())
         migrated = False
         for item in data:
+            item.pop("source", None)
             if any(old_key in item for old_key in FIELD_MIGRATION):
                 _migrate_card_data(item)
                 migrated = True

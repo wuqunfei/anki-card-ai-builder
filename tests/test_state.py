@@ -14,8 +14,8 @@ class TestStateManager(unittest.TestCase):
 
     def test_save_and_load_cards(self):
         cards = [
-            Card(source_word="dog", target_language="en", source="test.xlsx"),
-            Card(source_word="chat", target_language="fr", source="test.xlsx"),
+            Card(source_word="dog", target_language="en"),
+            Card(source_word="chat", target_language="fr"),
         ]
         self.state.save_cards(cards)
         loaded = self.state.load_cards()
@@ -29,13 +29,13 @@ class TestStateManager(unittest.TestCase):
 
     def test_merge_new_cards(self):
         existing = [
-            Card(source_word="dog", target_language="en", source="test.xlsx"),
+            Card(source_word="dog", target_language="en"),
         ]
         self.state.save_cards(existing)
 
         new_cards = [
-            Card(source_word="dog", target_language="en", source="test.xlsx"),
-            Card(source_word="cat", target_language="en", source="test.xlsx"),
+            Card(source_word="dog", target_language="en"),
+            Card(source_word="cat", target_language="en"),
         ]
         merged = self.state.merge_cards(new_cards)
         self.assertEqual(len(merged), 2)
@@ -47,7 +47,6 @@ class TestStateManager(unittest.TestCase):
             Card(
                 source_word="dog",
                 target_language="en",
-                source="test.xlsx",
                 target_word="Hund",
                 status="enriched",
             ),
@@ -55,7 +54,7 @@ class TestStateManager(unittest.TestCase):
         self.state.save_cards(existing)
 
         new_cards = [
-            Card(source_word="dog", target_language="en", source="test.xlsx"),
+            Card(source_word="dog", target_language="en"),
         ]
         merged = self.state.merge_cards(new_cards)
         self.assertEqual(merged[0].target_word, "Hund")

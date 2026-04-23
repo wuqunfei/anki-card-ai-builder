@@ -82,7 +82,6 @@ def ingest_excel(
         card_data: dict = {
             "source_language": source_language,
             "target_language": target_language,
-            "source": str(path),
         }
         tags: list[str] = []
 

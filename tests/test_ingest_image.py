@@ -1,9 +1,14 @@
 import json
+import os
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from anki_builder.ingest.image import ingest_image
+
+TESTS_DIR = Path(__file__).parent
+INPUT_DIR = TESTS_DIR / "input"
+OUTPUT_DIR = TESTS_DIR / "output"
 
 
 SAMPLE_GEMINI_RESPONSE = json.dumps({
@@ -69,7 +74,7 @@ class TestIngestImage(unittest.TestCase):
         self.assertEqual(cards[0].source_word, "Apfel")
         self.assertEqual(cards[0].target_word, "pomme")
         self.assertEqual(cards[0].target_pronunciation, "/pɔm/")
-        self.assertEqual(cards[0].source, "test.png")
+
         self.assertEqual(cards[0].source_language, "de")
         self.assertEqual(cards[0].target_language, "fr")
         # id should be auto-generated, not the one from Gemini
@@ -116,6 +121,50 @@ class TestIngestImage(unittest.TestCase):
 
         with self.assertRaises(json.JSONDecodeError):
             ingest_image(Path("test.png"), target_language="fr")
+
+
+@unittest.skipUnless(os.environ.get("GOOGLE_API_KEY"), "GOOGLE_API_KEY not set")
+class TestIngestImageReal(unittest.TestCase):
+    """Integration tests that call the real Gemini API with test images."""
+
+    def _run_folder(self, target_language: str):
+        input_folder = INPUT_DIR / target_language
+        output_folder = OUTPUT_DIR / target_language
+        output_folder.mkdir(parents=True, exist_ok=True)
+
+        image_files = sorted(input_folder.glob("*.heic"))
+        self.assertTrue(len(image_files) > 0, f"No .heic files in {input_folder}")
+
+        all_cards = []
+        for image_path in image_files:
+            cards = ingest_image(
+                path=image_path,
+                target_language=target_language,
+                source_language="de",
+            )
+            self.assertIsInstance(cards, list)
+            for card in cards:
+                self.assertEqual(card.target_language, target_language)
+                self.assertEqual(card.source_language, "de")
+                self.assertTrue(card.source_word, "source_word should not be empty")
+
+            all_cards.extend(cards)
+
+        # Save results as JSON
+        output_file = output_folder / "cards.json"
+        cards_data = [card.model_dump() for card in all_cards]
+        output_file.write_text(json.dumps(cards_data, indent=2, ensure_ascii=False), encoding="utf-8")
+
+        print(f"\n{target_language}: extracted {len(all_cards)} cards from {len(image_files)} images -> {output_file}")
+        return all_cards
+
+    def test_ingest_english_images(self):
+        cards = self._run_folder("english")
+        self.assertGreater(len(cards), 0, "Should extract at least one card")
+
+    def test_ingest_french_images(self):
+        cards = self._run_folder("french")
+        self.assertGreater(len(cards), 0, "Should extract at least one card")
 
 
 if __name__ == "__main__":

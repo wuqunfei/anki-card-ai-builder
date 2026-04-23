@@ -21,7 +21,7 @@ class TestAudioGeneration(unittest.TestCase):
         media_dir = Path(tmpdir) / "media"
         media_dir.mkdir()
 
-        card = Card(source_word="Hund", target_language="fr", source="test", target_word="chien")
+        card = Card(source_word="Hund", target_language="fr", target_word="chien")
         result = generate_audio_for_card(card, media_dir)
 
         self.assertIsNotNone(result.audio_file)
@@ -34,7 +34,7 @@ class TestAudioGeneration(unittest.TestCase):
         media_dir = Path(tmpdir) / "media"
         media_dir.mkdir()
 
-        card = Card(id="fixed-id", source_word="dog", target_language="en", source="test")
+        card = Card(id="fixed-id", source_word="dog", target_language="en")
         audio_path = media_dir / "fixed-id_audio.mp3"
         audio_path.write_bytes(b"existing-audio")
         card = card.model_copy(update={"audio_file": str(audio_path)})
@@ -56,8 +56,8 @@ class TestAudioGeneration(unittest.TestCase):
         media_dir.mkdir()
 
         cards = [
-            Card(source_word="dog", target_language="en", source="test"),
-            Card(source_word="cat", target_language="en", source="test"),
+            Card(source_word="dog", target_language="en"),
+            Card(source_word="cat", target_language="en"),
         ]
         results = generate_audio_batch(cards, media_dir)
         self.assertEqual(len(results), 2)

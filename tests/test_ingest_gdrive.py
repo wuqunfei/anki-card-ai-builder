@@ -29,7 +29,7 @@ class TestGDriveIngestion(unittest.TestCase):
         ]
         mock_download.return_value = Path(tempfile.mktemp(suffix=".xlsx"))
         mock_ingest_excel.return_value = [
-            Card(source_word="dog", target_language="en", source="gdrive"),
+            Card(source_word="dog", target_language="en"),
         ]
 
         cards = ingest_gdrive_folder(
