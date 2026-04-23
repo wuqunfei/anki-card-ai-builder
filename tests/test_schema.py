@@ -5,40 +5,64 @@ from anki_builder.schema import Card
 class TestCard(unittest.TestCase):
     def test_create_full_card(self):
         card = Card(
-            word="accomplish",
+            source_word="accomplish",
             source_language="de",
             target_language="en",
             source="vocab.xlsx",
         )
-        self.assertEqual(card.word, "accomplish")
+        self.assertEqual(card.source_word, "accomplish")
         self.assertEqual(card.source_language, "de")
         self.assertEqual(card.target_language, "en")
         self.assertEqual(card.status, "extracted")
         self.assertIsNotNone(card.id)
-        self.assertIsNone(card.translation)
-        self.assertIsNone(card.pronunciation)
-        self.assertIsNone(card.example_sentence)
-        self.assertIsNone(card.sentence_translation)
-        self.assertIsNone(card.mnemonic)
-        self.assertIsNone(card.part_of_speech)
+        self.assertIsNone(card.target_word)
+        self.assertIsNone(card.target_pronunciation)
+        self.assertIsNone(card.target_example_sentence)
+        self.assertIsNone(card.source_example_sentence)
+        self.assertIsNone(card.target_mnemonic)
+        self.assertIsNone(card.target_part_of_speech)
+        self.assertIsNone(card.unit)
+        self.assertIsNone(card.reference)
+        self.assertIsNone(card.source_gender)
+        self.assertIsNone(card.target_gender)
         self.assertEqual(card.tags, [])
 
     def test_card_id_is_uuid(self):
         import uuid
-        card = Card(word="test", source_language="de", target_language="en", source="test")
-        uuid.UUID(card.id)  # Raises if not valid UUID
+        card = Card(source_word="test", source_language="de", target_language="en", source="test")
+        uuid.UUID(card.id)
 
     def test_card_serialization_roundtrip(self):
         card = Card(
-            word="Hund",
+            source_word="Hund",
             source_language="de",
             target_language="en",
-            translation="dog",
+            target_word="dog",
             source="vocab.xlsx",
         )
         data = card.model_dump()
         card2 = Card(**data)
         self.assertEqual(card, card2)
+
+    def test_new_optional_fields(self):
+        card = Card(
+            source_word="maison",
+            source_language="de",
+            target_language="fr",
+            source="test",
+            unit="Unité 1",
+            reference="Page 162",
+            source_gender="f",
+            target_gender="f",
+        )
+        self.assertEqual(card.unit, "Unité 1")
+        self.assertEqual(card.reference, "Page 162")
+        self.assertEqual(card.source_gender, "f")
+        self.assertEqual(card.target_gender, "f")
+
+    def test_target_language_required(self):
+        with self.assertRaises(Exception):
+            Card(source_word="test", source="test")
 
 
 if __name__ == "__main__":
