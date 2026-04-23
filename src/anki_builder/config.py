@@ -31,10 +31,6 @@ class Config(BaseModel):
         return os.environ.get("MINIMAX_API_KEY", "")
 
     @property
-    def deepseek_api_key(self) -> str:
-        return os.environ.get("DEEPSEEK_API_KEY", "")
-
-    @property
     def google_api_key(self) -> str:
         return os.environ.get("GOOGLE_API_KEY", "")
 

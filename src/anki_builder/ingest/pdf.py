@@ -1,4 +1,3 @@
-import base64
 from pathlib import Path
 
 import pymupdf
@@ -16,42 +15,26 @@ def extract_text_from_pdf(path: Path) -> str:
     return "\n".join(text_parts).strip()
 
 
-def _pdf_pages_to_images(path: Path) -> list[bytes]:
-    doc = pymupdf.open(str(path))
-    images = []
-    for page in doc:
-        pix = page.get_pixmap(dpi=200)
-        images.append(pix.tobytes("png"))
-    doc.close()
-    return images
-
-
 def ingest_pdf(
     path: Path,
     target_language: str,
-    deepseek_api_key: str,
+    minimax_api_key: str,
     source_language: str = "de",
 ) -> list[Card]:
     text = extract_text_from_pdf(path)
 
-    if text.strip():
-        vocab_items = extract_vocabulary_with_ai(
-            text=text,
-            target_language=target_language,
-            source_language=source_language,
-            deepseek_api_key=deepseek_api_key,
+    if not text.strip():
+        raise NotImplementedError(
+            "Image-based PDF ingestion is not yet available. "
+            "Google Gemini OCR support is planned for a future release."
         )
-    else:
-        images = _pdf_pages_to_images(path)
-        vocab_items = []
-        for img_bytes in images:
-            items = extract_vocabulary_with_ai(
-                image_bytes=img_bytes,
-                target_language=target_language,
-                source_language=source_language,
-                deepseek_api_key=deepseek_api_key,
-            )
-            vocab_items.extend(items)
+
+    vocab_items = extract_vocabulary_with_ai(
+        text=text,
+        target_language=target_language,
+        source_language=source_language,
+        minimax_api_key=minimax_api_key,
+    )
 
     cards = []
     for item in vocab_items:

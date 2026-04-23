@@ -16,7 +16,7 @@ from anki_builder.media.image import generate_image_batch
 from anki_builder.export.apkg import export_apkg
 
 WORK_DIR = Path(".anki-builder")
-IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp"}
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp", ".heic", ".heif"}
 
 
 def _words_to_cards(words_str: str, target_language: str, source_language: str) -> list[Card]:
@@ -77,16 +77,16 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
         click.echo(f"Ingesting {input_path} as {input_type}...")
 
         if input_type == "gdrive":
-            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.deepseek_api_key, src_lang)
+            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.minimax_api_key, src_lang)
         elif input_type == "excel":
             path = Path(input_path)
             cards = ingest_excel(path, target_language, src_lang, col_map)
         elif input_type == "pdf":
             path = Path(input_path)
-            cards = ingest_pdf(path, target_language, config.deepseek_api_key, src_lang)
+            cards = ingest_pdf(path, target_language, config.minimax_api_key, src_lang)
         elif input_type == "image":
             path = Path(input_path)
-            cards = ingest_image(path, target_language, config.deepseek_api_key, src_lang)
+            cards = ingest_image(path, target_language, config.minimax_api_key, src_lang)
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)
@@ -224,16 +224,16 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
         input_type = _detect_input_type(input_path)
         click.echo(f"Step 1/4: Ingesting {input_path}...")
         if input_type == "gdrive":
-            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.deepseek_api_key, src_lang)
+            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.minimax_api_key, src_lang)
         elif input_type == "excel":
             path = Path(input_path)
             cards = ingest_excel(path, target_language, src_lang)
         elif input_type == "pdf":
             path = Path(input_path)
-            cards = ingest_pdf(path, target_language, config.deepseek_api_key, src_lang)
+            cards = ingest_pdf(path, target_language, config.minimax_api_key, src_lang)
         elif input_type == "image":
             path = Path(input_path)
-            cards = ingest_image(path, target_language, config.deepseek_api_key, src_lang)
+            cards = ingest_image(path, target_language, config.minimax_api_key, src_lang)
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)

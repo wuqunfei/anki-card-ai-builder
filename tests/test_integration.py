@@ -54,7 +54,7 @@ class TestFullPipeline(unittest.TestCase):
             result = runner.invoke(
                 main,
                 ["run", "--input", "vocab.xlsx", "--lang", "en", "--deck", "TestDeck"],
-                env={"MINIMAX_API_KEY": "test", "DEEPSEEK_API_KEY": "test"},
+                env={"MINIMAX_API_KEY": "test"},
             )
             self.assertEqual(result.exit_code, 0, msg=result.output)
 

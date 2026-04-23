@@ -1,7 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pymupdf
 
@@ -38,7 +38,7 @@ class TestPdfTextExtraction(unittest.TestCase):
             "dog - Hund\ncat - Katze",
             Path(tmpdir) / "vocab.pdf",
         )
-        cards = ingest_pdf(path, target_language="en", deepseek_api_key="test-key")
+        cards = ingest_pdf(path, target_language="en", minimax_api_key="test-key")
         self.assertEqual(len(cards), 2)
         self.assertEqual(cards[0].word, "dog")
         mock_ai.assert_called_once()

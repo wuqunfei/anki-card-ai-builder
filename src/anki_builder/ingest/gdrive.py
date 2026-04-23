@@ -62,7 +62,7 @@ def ingest_gdrive_folder(
     url_or_id: str,
     target_language: str,
     google_api_key: str,
-    deepseek_api_key: str,
+    minimax_api_key: str,
     source_language: str = "de",
 ) -> list[Card]:
     folder_id = extract_folder_id(url_or_id)
@@ -82,9 +82,9 @@ def ingest_gdrive_folder(
             if suffix in EXCEL_EXTENSIONS:
                 cards = ingest_excel(local_path, target_language, source_language)
             elif suffix in PDF_EXTENSIONS:
-                cards = ingest_pdf(local_path, target_language, deepseek_api_key, source_language)
+                cards = ingest_pdf(local_path, target_language, minimax_api_key, source_language)
             elif suffix in IMAGE_EXTENSIONS:
-                cards = ingest_image(local_path, target_language, deepseek_api_key, source_language)
+                cards = ingest_image(local_path, target_language, minimax_api_key, source_language)
             else:
                 continue
 

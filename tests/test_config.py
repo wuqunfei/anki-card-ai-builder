@@ -37,14 +37,11 @@ class TestConfig(unittest.TestCase):
 
     def test_api_keys_from_env(self):
         os.environ["MINIMAX_API_KEY"] = "test-minimax-key"
-        os.environ["DEEPSEEK_API_KEY"] = "test-deepseek-key"
         try:
             config = Config()
             self.assertEqual(config.minimax_api_key, "test-minimax-key")
-            self.assertEqual(config.deepseek_api_key, "test-deepseek-key")
         finally:
             del os.environ["MINIMAX_API_KEY"]
-            del os.environ["DEEPSEEK_API_KEY"]
 
 
 if __name__ == "__main__":

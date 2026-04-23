@@ -27,8 +27,9 @@ cp .env.example .env
 | Key | Required for |
 |-----|-------------|
 | `MINIMAX_API_KEY` | AI enrichment + image generation |
-| `DEEPSEEK_API_KEY` | PDF/image OCR ingestion |
 | `GOOGLE_API_KEY` | Google Drive folder ingestion |
+
+OCR is handled locally by [PaddleOCR-VL-1.5](https://huggingface.co/PaddlePaddle/PaddleOCR-VL-1.5) — no API key needed.
 
 ## Usage
 

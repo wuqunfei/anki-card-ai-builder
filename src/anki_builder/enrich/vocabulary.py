@@ -1,11 +1,10 @@
-import base64
 import json
 import re
 
-import httpx
+import anthropic
 
-DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions"
-DEEPSEEK_MODEL = "deepseek-chat"
+MINIMAX_BASE_URL = "https://api.minimax.io/anthropic"
+MINIMAX_MODEL = "MiniMax-M2.5"
 
 
 def _build_text_prompt(text: str, target_language: str, source_language: str) -> str:
@@ -18,18 +17,6 @@ def _build_text_prompt(text: str, target_language: str, source_language: str) ->
         f"that are present in the source. Do not generate content that isn't in "
         f"the source text — only extract what's there.\n\n"
         f"Text:\n{text}"
-    )
-
-
-def _build_vision_prompt(target_language: str, source_language: str) -> str:
-    return (
-        f"Extract vocabulary words from this image. The content is in "
-        f"{target_language} (target language) and {source_language} (source language).\n\n"
-        f"For each word, extract any available information: word, translation, "
-        f"pronunciation, example_sentence, part_of_speech.\n\n"
-        f"Return ONLY a JSON array of objects. Each object should have the fields "
-        f"that are present in the source. Do not generate content that isn't in "
-        f"the image — only extract what's visible."
     )
 
 
@@ -49,45 +36,25 @@ def _parse_vocabulary_response(text: str) -> list[dict]:
 def extract_vocabulary_with_ai(
     target_language: str,
     source_language: str,
-    deepseek_api_key: str,
+    minimax_api_key: str = "",
     text: str | None = None,
-    image_bytes: bytes | None = None,
 ) -> list[dict]:
-    headers = {
-        "Authorization": f"Bearer {deepseek_api_key}",
-        "Content-Type": "application/json",
-    }
-
-    if image_bytes is not None:
-        b64 = base64.b64encode(image_bytes).decode()
-        messages = [{
-            "role": "user",
-            "content": [
-                {
-                    "type": "image_url",
-                    "image_url": {"url": f"data:image/png;base64,{b64}"},
-                },
-                {
-                    "type": "text",
-                    "text": _build_vision_prompt(target_language, source_language),
-                },
-            ],
-        }]
-    elif text is not None:
-        messages = [{
-            "role": "user",
-            "content": _build_text_prompt(text, target_language, source_language),
-        }]
-    else:
+    if not text:
         return []
 
-    payload = {
-        "model": DEEPSEEK_MODEL,
-        "messages": messages,
-        "temperature": 0.1,
-    }
-
-    response = httpx.post(DEEPSEEK_API_URL, headers=headers, json=payload, timeout=60)
-    response.raise_for_status()
-    content = response.json()["choices"][0]["message"]["content"]
+    client = anthropic.Anthropic(api_key=minimax_api_key, base_url=MINIMAX_BASE_URL)
+    response = client.messages.create(
+        model=MINIMAX_MODEL,
+        max_tokens=16384,
+        messages=[{
+            "role": "user",
+            "content": _build_text_prompt(text, target_language, source_language),
+        }],
+        temperature=0.1,
+    )
+    content = ""
+    for block in response.content:
+        if hasattr(block, "text"):
+            content = block.text
+            break
     return _parse_vocabulary_response(content)

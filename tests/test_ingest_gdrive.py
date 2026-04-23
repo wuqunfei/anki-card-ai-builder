@@ -36,7 +36,7 @@ class TestGDriveIngestion(unittest.TestCase):
             "https://drive.google.com/drive/folders/test123",
             target_language="en",
             google_api_key="test-key",
-            deepseek_api_key="test-key",
+            minimax_api_key="test-key",
         )
         self.assertEqual(len(cards), 1)
         self.assertEqual(cards[0].word, "dog")
@@ -54,7 +54,7 @@ class TestGDriveIngestion(unittest.TestCase):
             "test-folder-id",
             target_language="en",
             google_api_key="test-key",
-            deepseek_api_key="test-key",
+            minimax_api_key="test-key",
         )
         self.assertEqual(len(cards), 0)
         mock_download.assert_not_called()
