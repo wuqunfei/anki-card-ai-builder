@@ -30,8 +30,8 @@ class TestPdfTextExtraction(unittest.TestCase):
     @patch("anki_builder.ingest.pdf.extract_vocabulary_with_ai")
     def test_ingest_pdf_calls_ai_extraction(self, mock_ai):
         mock_ai.return_value = [
-            {"word": "dog", "translation": "Hund"},
-            {"word": "cat", "translation": "Katze"},
+            {"source_word": "dog", "target_word": "Hund"},
+            {"source_word": "cat", "target_word": "Katze"},
         ]
         tmpdir = tempfile.mkdtemp()
         path = self._create_pdf_with_text(
@@ -40,7 +40,7 @@ class TestPdfTextExtraction(unittest.TestCase):
         )
         cards = ingest_pdf(path, target_language="en", minimax_api_key="test-key")
         self.assertEqual(len(cards), 2)
-        self.assertEqual(cards[0].word, "dog")
+        self.assertEqual(cards[0].source_word, "dog")
         mock_ai.assert_called_once()
 
 

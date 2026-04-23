@@ -7,25 +7,26 @@ from anki_builder.schema import Card
 
 # Fuzzy header mapping: common header names → Card field names
 HEADER_ALIASES: dict[str, str] = {
-    "word": "word",
-    "wort": "word",
-    "vokabel": "word",
-    "translation": "translation",
-    "übersetzung": "translation",
-    "uebersetzung": "translation",
-    "bedeutung": "translation",
-    "pronunciation": "pronunciation",
-    "aussprache": "pronunciation",
-    "example": "example_sentence",
-    "beispiel": "example_sentence",
-    "example_sentence": "example_sentence",
+    "word": "source_word",
+    "wort": "source_word",
+    "vokabel": "source_word",
+    "translation": "target_word",
+    "übersetzung": "target_word",
+    "uebersetzung": "target_word",
+    "bedeutung": "target_word",
+    "pronunciation": "target_pronunciation",
+    "aussprache": "target_pronunciation",
+    "example": "target_example_sentence",
+    "beispiel": "target_example_sentence",
+    "example_sentence": "target_example_sentence",
     "tags": "tags",
     "tag": "tags",
 }
 
 CARD_FIELDS = {
-    "word", "translation", "pronunciation", "example_sentence",
-    "sentence_translation", "mnemonic", "part_of_speech", "tags",
+    "source_word", "target_word", "target_pronunciation",
+    "target_example_sentence", "source_example_sentence",
+    "target_mnemonic", "target_part_of_speech", "tags",
 }
 
 
@@ -67,7 +68,6 @@ def ingest_excel(
     else:
         headers, data = _read_xlsx(path)
 
-    # Map headers to card fields
     field_map: dict[int, str] = {}
     unmapped_cols: dict[int, str] = {}
     for i, header in enumerate(headers):
@@ -95,7 +95,7 @@ def ingest_excel(
             elif i in unmapped_cols:
                 tags.append(f"{unmapped_cols[i]}:{value_str}")
 
-        if "word" not in card_data:
+        if "source_word" not in card_data:
             continue
 
         card_data["tags"] = tags

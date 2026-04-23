@@ -44,6 +44,6 @@ def ingest_pdf(
             "source": str(path),
             **item,
         }
-        if "word" in card_data:
+        if "source_word" in card_data:
             cards.append(Card(**card_data))
     return cards
