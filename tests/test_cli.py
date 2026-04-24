@@ -55,5 +55,30 @@ class TestCLI(unittest.TestCase):
             self.assertTrue(Path("output/Test.apkg").exists())
 
 
+    def test_ingest_with_typing_flag(self):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            self._create_xlsx(Path("vocab.xlsx"))
+            result = runner.invoke(main, [
+                "ingest", "--input", "vocab.xlsx", "--lang-target", "en", "--typing"
+            ])
+            self.assertEqual(result.exit_code, 0, msg=result.output)
+            import json
+            cards_data = json.loads(Path("output/cards.json").read_text())
+            self.assertTrue(all(c["typing"] for c in cards_data))
+
+    def test_ingest_without_typing_flag(self):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            self._create_xlsx(Path("vocab.xlsx"))
+            result = runner.invoke(main, [
+                "ingest", "--input", "vocab.xlsx", "--lang-target", "en"
+            ])
+            self.assertEqual(result.exit_code, 0, msg=result.output)
+            import json
+            cards_data = json.loads(Path("output/cards.json").read_text())
+            self.assertFalse(any(c["typing"] for c in cards_data))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -19,10 +19,10 @@ WORK_DIR = Path("output")
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp", ".heic", ".heif"}
 
 
-def _words_to_cards(words_str: str, target_language: str, source_language: str) -> list[Card]:
+def _words_to_cards(words_str: str, target_language: str, source_language: str, typing: bool = False) -> list[Card]:
     words = [w.strip() for w in words_str.split(",") if w.strip()]
     return [
-        Card(source_word=w, target_language=target_language, source_language=source_language)
+        Card(source_word=w, target_language=target_language, source_language=source_language, typing=typing)
         for w in words
     ]
 
@@ -100,8 +100,9 @@ def main():
 @click.option("--deck", "deck_name", default=None, help="Deck name for export")
 @click.option("--no-images", is_flag=True, help="Skip image generation")
 @click.option("--no-audio", is_flag=True, help="Skip audio generation")
+@click.option("--typing", is_flag=True, help="Create 'type in the answer' cards")
 def run(input_path: str | None, words: str | None, target_language: str, source_language: str,
-        deck_name: str | None, no_images: bool, no_audio: bool):
+        deck_name: str | None, no_images: bool, no_audio: bool, typing: bool):
     """Run full pipeline: ingest, enrich, media, review (export separately)."""
     if not input_path and not words:
         raise click.ClickException("Provide either --input or --words.")
@@ -116,7 +117,7 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
 
     # Ingest
     if words:
-        cards = _words_to_cards(words, target_language, source_language)
+        cards = _words_to_cards(words, target_language, source_language, typing)
         click.echo(f"Step 1/4: Ingesting {len(cards)} words from command line...")
     else:
         input_type = _detect_input_type(input_path)
@@ -136,6 +137,9 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
             cards = ingest_image(path, target_language, source_language, config.google_api_key)
         elif input_type == "folder":
             cards = _ingest_folder(Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key)
+
+    if typing:
+        cards = [c.model_copy(update={"typing": True}) for c in cards]
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)
@@ -193,7 +197,8 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
 @click.option("--words", "words", default=None, type=str, help="Comma-separated words (e.g. \"Glove,Squirrel,impossible\")")
 @click.option("--lang-target", "target_language", required=True, help="Target language code (en, fr, zh)")
 @click.option("--lang-source", "source_language", default="de", help="Source language code (default: de)")
-def ingest(input_path: str | None, words: str | None, target_language: str, source_language: str):
+@click.option("--typing", is_flag=True, help="Create 'type in the answer' cards")
+def ingest(input_path: str | None, words: str | None, target_language: str, source_language: str, typing: bool):
     """Step 1: Extract vocabulary from a file, folder, URL, or word list."""
     if not input_path and not words:
         raise click.ClickException("Provide either --input or --words.")
@@ -228,6 +233,9 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
             cards = ingest_image(path, target_language, source_language, config.google_api_key)
         elif input_type == "folder":
             cards = _ingest_folder(Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key)
+
+    if typing:
+        cards = [c.model_copy(update={"typing": True}) for c in cards]
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)
