@@ -1,9 +1,17 @@
 import json
 import re
+import unicodedata
 
 import anthropic
 
 from anki_builder.schema import Card
+
+def _normalize(text: str) -> str:
+    """Normalize text for fuzzy matching: lowercase, strip accents and punctuation."""
+    text = unicodedata.normalize("NFD", text.lower())
+    text = "".join(c for c in text if unicodedata.category(c) not in ("Mn", "Po", "Ps", "Pe"))
+    return text.strip()
+
 
 MINIMAX_BASE_URL = "https://api.minimax.io/anthropic"
 MINIMAX_MODEL = "MiniMax-M2.5"
@@ -100,10 +108,17 @@ def enrich_cards(
                 break
         items = _parse_enrichment_response(content)
 
+        # Build lookup maps: exact match first, then normalized fallback
         item_map = {item["source_word"]: item for item in items if "source_word" in item}
-        for card in batch:
-            if card.source_word in item_map:
-                item = item_map[card.source_word]
+        norm_map = {_normalize(item["source_word"]): item for item in items if "source_word" in item}
+
+        for i, card in enumerate(batch):
+            item = item_map.get(card.source_word) or norm_map.get(_normalize(card.source_word))
+            # Positional fallback if word count matches
+            if item is None and len(items) == len(batch) and i < len(items):
+                item = items[i]
+
+            if item is not None:
                 update = {"status": "enriched"}
                 for field in ["target_word", "target_pronunciation",
                               "target_example_sentence", "source_example_sentence"]:

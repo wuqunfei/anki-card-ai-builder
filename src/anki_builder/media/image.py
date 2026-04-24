@@ -12,8 +12,10 @@ MINIMAX_IMAGE_MODEL = "image-01"
 
 def _build_image_prompt(word: str, target_language: str) -> str:
     return (
-        f"Simple, colorful illustration of '{word}' suitable for kids "
-        f"Friendly cartoon style, NO text and NO words in the image."
+        f"A single cute, cartoon illustration of: {word}. "
+        f"Kid-friendly, colorful, clean background. "
+        f"The image must contain ZERO text, ZERO letters, ZERO words, ZERO labels, ZERO captions. "
+        f"No speech bubbles. No writing of any kind. Only a drawing."
     )
 
 
@@ -40,18 +42,25 @@ async def generate_image_for_card(
         "response_format": "base64",
     }
 
-    resp = await client.post(
-        MINIMAX_IMAGE_URL,
-        headers=headers,
-        json=payload,
-        timeout=120,
-    )
-    resp.raise_for_status()
-    b64_data = resp.json()["data"]["image_base64"][0]
-    image_bytes = base64.b64decode(b64_data)
-    image_path.write_bytes(image_bytes)
+    for attempt in range(3):
+        resp = await client.post(
+            MINIMAX_IMAGE_URL,
+            headers=headers,
+            json=payload,
+            timeout=120,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        image_list = (data.get("data") or {}).get("image_base64")
+        if image_list:
+            image_bytes = base64.b64decode(image_list[0])
+            image_path.write_bytes(image_bytes)
+            return card.model_copy(update={"image_file": str(image_path)})
+        if attempt < 2:
+            await asyncio.sleep(2 ** attempt)
 
-    return card.model_copy(update={"image_file": str(image_path)})
+    print(f"Warning: image generation failed for '{card.source_word}', skipping.")
+    return card
 
 
 async def generate_image_batch(

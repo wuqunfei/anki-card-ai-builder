@@ -36,7 +36,8 @@ Return a JSON object with a key "cards" containing a list of objects:
   * Join parts with " + ". ONLY provide if the word has meaningful parts (prefixes, suffixes, or compound structure). If the word is a simple root (e.g., "chat", "chien"), set to null.
 
 # Rules
-1. Tone: Encouraging and simple for 9-12 year olds.
-2. Inference: If the image only has the German word, you MUST generate the target translation, gender, pronunciation, and kid-friendly example.
-3. Clean Strings: No articles (der/die/das/le/la) inside the 'word' fields.
-4. Strict Output: Return ONLY the raw JSON code block.
+1. Completeness: Extract EVERY vocabulary item visible on the page. Do not skip any words. If the page has 30+ items, return 30+ cards.
+2. Tone: Encouraging and simple for 9-12 year olds.
+3. Inference: If the image only has the German word, you MUST generate the target translation, gender, pronunciation, and kid-friendly example.
+4. Clean Strings: No articles (der/die/das/le/la) inside the 'word' fields.
+5. Strict Output: Return ONLY the raw JSON code block.

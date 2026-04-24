@@ -137,12 +137,12 @@ def media(no_images: bool, no_audio: bool):
             cards, state.media_dir, config.minimax_api_key, config.media.concurrency,
         ))
 
-    # Update status to complete for cards that have both media
+    # Update status to complete for cards that have media
     updated = []
     for card in cards:
-        if card.status == "enriched" and card.audio_file and card.image_file:
+        if card.status in ("extracted", "enriched") and card.audio_file and card.image_file:
             updated.append(card.model_copy(update={"status": "complete"}))
-        elif card.status == "enriched" and (no_images or no_audio):
+        elif card.status in ("extracted", "enriched") and (no_images or no_audio):
             updated.append(card.model_copy(update={"status": "complete"}))
         else:
             updated.append(card)
