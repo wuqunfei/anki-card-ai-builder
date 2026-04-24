@@ -69,7 +69,6 @@ CARD_MODEL = genanki.Model(
             "afmt": (
                 '{{#Typing}}'
                 '{{FrontSide}}<hr id="answer">'
-                '<div style="text-align:center; margin:20px;">{{type:TargetWord}}</div>'
                 '<div style="text-align:center; font-size:22px; color:#333; margin:10px;">{{TargetWord}}</div>'
                 '<div style="text-align:center; font-size:16px; color:#7f8c8d; margin-bottom:8px;">'
                 "{{TargetPronunciation}}"
@@ -127,7 +126,10 @@ def _card_to_note(card: Card) -> tuple[genanki.Note, list[str]]:
         media_files.append(card.target_example_audio)
 
     source_display = _format_word_with_gender(card.source_word, card.source_gender)
-    target_display = _format_word_with_gender(card.target_word or "", card.target_gender)
+    if card.typing:
+        target_display = card.target_word or ""
+    else:
+        target_display = _format_word_with_gender(card.target_word or "", card.target_gender)
 
     note = genanki.Note(
         model=CARD_MODEL,
