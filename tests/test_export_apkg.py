@@ -120,6 +120,46 @@ class TestApkgExport(unittest.TestCase):
         self.assertTrue(output_path.exists())
         self.assertTrue(zipfile.is_zipfile(output_path))
 
+    def test_full_pipeline_mixed_deck(self):
+        """End-to-end: mixed basic + typing cards in one deck, both export correctly."""
+        tmpdir = tempfile.mkdtemp()
+        output_path = Path(tmpdir) / "test.apkg"
+
+        basic_card = Card(
+            id="basic-1",
+            source_word="dog",
+            target_language="en",
+            target_word="Hund",
+            target_pronunciation="/dɒɡ/",
+            target_example_sentence="The dog plays! 🐕",
+            source_example_sentence="Der Hund spielt! 🐕",
+            target_mnemonic='<span style="color:red">dog</span>',
+            target_part_of_speech="noun",
+            status="enriched",
+            typing=False,
+        )
+        typing_card = Card(
+            id="typing-1",
+            source_word="cat",
+            target_language="en",
+            target_word="Katze",
+            target_pronunciation="/kæt/",
+            target_example_sentence="The cat sleeps! 🐱",
+            source_example_sentence="Die Katze schläft! 🐱",
+            target_mnemonic='<span style="color:red">cat</span>',
+            target_part_of_speech="noun",
+            status="enriched",
+            typing=True,
+        )
+
+        export_apkg([basic_card, typing_card], output_path, deck_name="Mixed Deck")
+        self.assertTrue(output_path.exists())
+        self.assertTrue(zipfile.is_zipfile(output_path))
+
+        # Verify the apkg contains an sqlite database with 2 notes
+        with zipfile.ZipFile(output_path) as zf:
+            self.assertIn("collection.anki2", zf.namelist())
+
 
 if __name__ == "__main__":
     unittest.main()
