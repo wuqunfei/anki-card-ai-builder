@@ -5,7 +5,7 @@ import click
 
 from anki_builder.config import load_config
 from anki_builder.schema import Card
-from anki_builder.state import StateManager
+from anki_builder.state import StateManager, finalize_card_status
 from anki_builder.ingest.excel import ingest_excel
 from anki_builder.ingest.pdf import ingest_pdf
 from anki_builder.ingest.image import ingest_image
@@ -45,7 +45,6 @@ def _detect_input_type(path_or_url: str) -> str:
 @click.group()
 def main():
     """anki-builder: Anki Card AI Builder — generate flashcards for language learning."""
-    pass
 
 
 @main.command()
@@ -72,9 +71,19 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
         input_type = _detect_input_type(input_path)
         col_map = None
         if column_map:
-            col_map = dict(pair.split("=") for pair in column_map.split(","))
+            try:
+                col_map = dict(pair.split("=") for pair in column_map.split(","))
+            except ValueError:
+                raise click.ClickException(
+                    "Invalid --column-map format. Expected key=value pairs separated by commas, "
+                    'e.g. --column-map word=Wort,translation=Übersetzung'
+                )
 
         click.echo(f"Ingesting {input_path} as {input_type}...")
+        if input_type in ("image", "gdrive"):
+            config.require_google_key()
+        if input_type in ("pdf", "gdrive"):
+            config.require_minimax_key()
 
         if input_type == "gdrive":
             cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.minimax_api_key, src_lang)
@@ -86,7 +95,7 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
             cards = ingest_pdf(path, target_language, config.minimax_api_key, src_lang)
         elif input_type == "image":
             path = Path(input_path)
-            cards = ingest_image(path, target_language, src_lang)
+            cards = ingest_image(path, target_language, src_lang, config.google_api_key)
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)
@@ -98,6 +107,7 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
 def enrich(source_language: str | None):
     """Fill missing card fields using AI."""
     config = load_config(WORK_DIR)
+    config.require_minimax_key()
     state = StateManager(WORK_DIR)
     src_lang = source_language or config.default_source_language
 
@@ -120,6 +130,8 @@ def enrich(source_language: str | None):
 def media(no_images: bool, no_audio: bool):
     """Generate audio and images for cards."""
     config = load_config(WORK_DIR)
+    if not no_images and config.media.image_enabled:
+        config.require_minimax_key()
     state = StateManager(WORK_DIR)
     cards = state.load_cards()
 
@@ -137,16 +149,7 @@ def media(no_images: bool, no_audio: bool):
             cards, state.media_dir, config.minimax_api_key, config.media.concurrency,
         ))
 
-    # Update status to complete for cards that have media
-    updated = []
-    for card in cards:
-        if card.status in ("extracted", "enriched") and card.audio_file and card.image_file:
-            updated.append(card.model_copy(update={"status": "complete"}))
-        elif card.status in ("extracted", "enriched") and (no_images or no_audio):
-            updated.append(card.model_copy(update={"status": "complete"}))
-        else:
-            updated.append(card)
-
+    updated = finalize_card_status(cards, no_images, no_audio)
     state.save_cards(updated)
     click.echo("Media generation complete.")
 
@@ -197,13 +200,13 @@ def export(deck_name: str | None, output_path: str | None, prune: bool):
 
 
 @main.command()
-@click.option("--input", "input_path", default=None, type=str)
-@click.option("--words", "words", default=None, type=str, help="Comma-separated words")
-@click.option("--lang", "target_language", required=True)
-@click.option("--deck", "deck_name", default=None)
-@click.option("--no-images", is_flag=True)
-@click.option("--no-audio", is_flag=True)
-@click.option("--source-lang", "source_language", default=None)
+@click.option("--input", "input_path", default=None, type=str, help="Input file path or Google Drive folder URL")
+@click.option("--words", "words", default=None, type=str, help='Comma-separated words (e.g. "Glove,Squirrel,impossible")')
+@click.option("--lang", "target_language", required=True, help="Target language code (en, fr, zh)")
+@click.option("--deck", "deck_name", default=None, help="Deck name for export")
+@click.option("--no-images", is_flag=True, help="Skip image generation")
+@click.option("--no-audio", is_flag=True, help="Skip audio generation")
+@click.option("--source-lang", "source_language", default=None, help="Source language code (default: from config)")
 def run(input_path: str | None, words: str | None, target_language: str, deck_name: str | None,
         no_images: bool, no_audio: bool, source_language: str | None):
     """Run pipeline: ingest → enrich → media → review. Export separately after review."""
@@ -216,12 +219,17 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
     state = StateManager(WORK_DIR)
     src_lang = source_language or config.default_source_language
 
+    # Validate API keys
+    config.require_minimax_key()
+
     # Ingest
     if words:
         cards = _words_to_cards(words, target_language, src_lang)
         click.echo(f"Step 1/4: Ingesting {len(cards)} words from command line...")
     else:
         input_type = _detect_input_type(input_path)
+        if input_type in ("image", "gdrive"):
+            config.require_google_key()
         click.echo(f"Step 1/4: Ingesting {input_path}...")
         if input_type == "gdrive":
             cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.minimax_api_key, src_lang)
@@ -233,7 +241,7 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
             cards = ingest_pdf(path, target_language, config.minimax_api_key, src_lang)
         elif input_type == "image":
             path = Path(input_path)
-            cards = ingest_image(path, target_language, src_lang)
+            cards = ingest_image(path, target_language, src_lang, config.google_api_key)
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)
@@ -254,12 +262,7 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
             enriched, state.media_dir, config.minimax_api_key, config.media.concurrency,
         ))
 
-    updated = []
-    for card in enriched:
-        if card.status == "enriched":
-            updated.append(card.model_copy(update={"status": "complete"}))
-        else:
-            updated.append(card)
+    updated = finalize_card_status(enriched, no_images, no_audio)
     state.save_cards(updated)
     click.echo("  Media complete.")
 
