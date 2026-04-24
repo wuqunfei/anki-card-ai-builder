@@ -74,19 +74,25 @@ TYPING_MODEL = genanki.Model(
             '<div style="text-align:center; margin:10px 0;">{{type:TargetWordPlain}}</div>'
         ),
         "afmt": (
-            '{{FrontSide}}<hr id="answer" style="margin:6px 0;">'
-            '<div style="text-align:center; font-size:20px; color:#333; margin:6px 0 2px;">{{TargetWord}}</div>'
-            '<div style="text-align:center; margin-bottom:6px;">'
+            '{{FrontSide}}<hr id="answer" style="margin:8px 0;">'
+            # --- Answer word (hero) ---
+            '<div style="text-align:center; font-size:24px; font-weight:bold; color:#2980b9; margin:8px 0 2px;">{{TargetWord}}</div>'
+            '<div style="text-align:center; margin-bottom:10px;">'
             '<span style="font-size:14px; color:#7f8c8d;">{{TargetPronunciation}}</span>'
             ' <span style="font-size:12px; color:#999;">{{TargetPartOfSpeech}}</span>'
             '</div>'
-            '{{#TargetMnemonic}}<div style="text-align:center; font-size:14px; margin:4px 0;">{{TargetMnemonic}}</div>{{/TargetMnemonic}}'
-            '{{#TargetMemoryHook}}<div style="text-align:center; font-size:13px; margin:3px 0;">{{TargetMemoryHook}}</div>{{/TargetMemoryHook}}'
-            '{{#TargetCognates}}<div style="text-align:center; font-size:12px; margin:3px 0;">{{TargetCognates}}</div>{{/TargetCognates}}'
-            '<div style="text-align:center; font-size:14px; margin:4px 0; color:#4a90d9;">{{TargetExampleSentence}}</div>'
+            # --- Etymology block (each field independent, shared border style) ---
+            '{{#TargetMnemonic}}<div style="text-align:left; margin:4px auto 0; padding:4px 10px; max-width:320px; '
+            'border-left:3px solid #ddd; font-size:13px; line-height:1.6;">{{TargetMnemonic}}</div>{{/TargetMnemonic}}'
+            '{{#TargetMemoryHook}}<div style="text-align:left; margin:0 auto; padding:4px 10px; max-width:320px; '
+            'border-left:3px solid #ddd; font-size:13px; line-height:1.6;">{{TargetMemoryHook}}</div>{{/TargetMemoryHook}}'
+            '{{#TargetCognates}}<div style="text-align:left; margin:0 auto 4px; padding:4px 10px; max-width:320px; '
+            'border-left:3px solid #ddd; font-size:12px; line-height:1.6;">{{TargetCognates}}</div>{{/TargetCognates}}'
+            # --- Examples (clear separation) ---
+            '<div style="text-align:center; font-size:15px; margin:12px 0 4px; color:#4a90d9;">{{TargetExampleSentence}}</div>'
             '<div style="text-align:center; font-size:13px; color:#7ea87e;">{{SourceExampleSentence}}</div>'
             '{{#ExampleAudio}}'
-            '<div style="text-align:center; margin:2px 0;">{{ExampleAudio}}</div>'
+            '<div style="text-align:center; margin:4px 0;">{{ExampleAudio}}</div>'
             '{{/ExampleAudio}}'
         ),
     }],
