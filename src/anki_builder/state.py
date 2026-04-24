@@ -72,6 +72,8 @@ class StateManager:
                     new_val = getattr(card, field)
                     if old_val is not None and new_val is None:
                         update_data[field] = old_val
+                if old.typing:
+                    update_data["typing"] = old.typing
                 update_data["id"] = old.id
                 if old.status != "extracted":
                     update_data["status"] = old.status

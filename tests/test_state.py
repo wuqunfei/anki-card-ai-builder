@@ -127,6 +127,24 @@ class TestStateManager(unittest.TestCase):
         self.assertIn("target_word", raw[0])
         self.assertNotIn("translation", raw[0])
 
+    def test_merge_preserves_typing_field(self):
+        existing = [
+            Card(
+                source_word="dog",
+                target_language="en",
+                target_word="Hund",
+                status="enriched",
+                typing=True,
+            ),
+        ]
+        self.state.save_cards(existing)
+
+        new_cards = [
+            Card(source_word="dog", target_language="en"),
+        ]
+        merged = self.state.merge_cards(new_cards)
+        self.assertTrue(merged[0].typing)
+
 
 if __name__ == "__main__":
     unittest.main()
