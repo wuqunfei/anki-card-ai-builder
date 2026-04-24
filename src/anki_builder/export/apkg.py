@@ -5,7 +5,7 @@ import genanki
 
 from anki_builder.schema import Card
 
-MODEL_ID = int(hashlib.md5(b"anki-builder-model-v2").hexdigest()[:8], 16)
+MODEL_ID = int(hashlib.md5(b"anki-builder-model-v3").hexdigest()[:8], 16)
 
 CARD_MODEL = genanki.Model(
     MODEL_ID,
@@ -21,33 +21,72 @@ CARD_MODEL = genanki.Model(
         {"name": "Audio"},
         {"name": "Image"},
         {"name": "ExampleAudio"},
+        {"name": "Typing"},
     ],
-    templates=[{
-        "name": "Card 1",
-        "qfmt": (
-            '<div style="text-align:center; font-size:28px; font-weight:bold; margin:20px; color:#2c3e50;">'
-            "{{TargetWord}}"
-            "</div>"
-            '<div style="text-align:center; font-size:16px; color:#7f8c8d; margin-bottom:8px;">'
-            "{{TargetPronunciation}}"
-            "</div>"
-            '<div style="text-align:center; font-size:13px; color:#999; margin-bottom:12px;">'
-            "{{TargetPartOfSpeech}}"
-            "</div>"
-            '<div style="text-align:center; margin:10px;">{{Image}}</div>'
-            '<div style="text-align:center;">{{Audio}}</div>'
-        ),
-        "afmt": (
-            '{{FrontSide}}<hr id="answer">'
-            '<div style="text-align:center; font-size:22px; color:#333; margin:10px;">{{SourceWord}}</div>'
-            '<div style="text-align:center; font-size:14px; margin:10px;">{{TargetMnemonic}}</div>'
-            '<div style="text-align:center; font-size:16px; margin:10px; color:#2c3e50;">{{TargetExampleSentence}}</div>'
-            '{{#ExampleAudio}}'
-            '<div style="text-align:center; margin:6px 0 10px;">{{ExampleAudio}}</div>'
-            '{{/ExampleAudio}}'
-            '<div style="text-align:center; font-size:14px; color:#666;">{{SourceExampleSentence}}</div>'
-        ),
-    }],
+    templates=[
+        {
+            "name": "Basic",
+            "qfmt": (
+                '{{^Typing}}'
+                '<div style="text-align:center; font-size:28px; font-weight:bold; margin:20px; color:#2c3e50;">'
+                "{{TargetWord}}"
+                "</div>"
+                '<div style="text-align:center; font-size:16px; color:#7f8c8d; margin-bottom:8px;">'
+                "{{TargetPronunciation}}"
+                "</div>"
+                '<div style="text-align:center; font-size:13px; color:#999; margin-bottom:12px;">'
+                "{{TargetPartOfSpeech}}"
+                "</div>"
+                '<div style="text-align:center; margin:10px;">{{Image}}</div>'
+                '<div style="text-align:center;">{{Audio}}</div>'
+                '{{/Typing}}'
+            ),
+            "afmt": (
+                '{{^Typing}}'
+                '{{FrontSide}}<hr id="answer">'
+                '<div style="text-align:center; font-size:22px; color:#333; margin:10px;">{{SourceWord}}</div>'
+                '<div style="text-align:center; font-size:14px; margin:10px;">{{TargetMnemonic}}</div>'
+                '<div style="text-align:center; font-size:16px; margin:10px; color:#2c3e50;">{{TargetExampleSentence}}</div>'
+                '{{#ExampleAudio}}'
+                '<div style="text-align:center; margin:6px 0 10px;">{{ExampleAudio}}</div>'
+                '{{/ExampleAudio}}'
+                '<div style="text-align:center; font-size:14px; color:#666;">{{SourceExampleSentence}}</div>'
+                '{{/Typing}}'
+            ),
+        },
+        {
+            "name": "Type-in",
+            "qfmt": (
+                '{{#Typing}}'
+                '<div style="text-align:center; font-size:28px; font-weight:bold; margin:20px; color:#2c3e50;">'
+                "{{SourceWord}}"
+                "</div>"
+                '<div style="text-align:center; margin:10px;">{{Image}}</div>'
+                '<div style="text-align:center;">{{Audio}}</div>'
+                '<div style="text-align:center; margin:20px;">{{type:TargetWord}}</div>'
+                '{{/Typing}}'
+            ),
+            "afmt": (
+                '{{#Typing}}'
+                '{{FrontSide}}<hr id="answer">'
+                '<div style="text-align:center; margin:20px;">{{type:TargetWord}}</div>'
+                '<div style="text-align:center; font-size:22px; color:#333; margin:10px;">{{TargetWord}}</div>'
+                '<div style="text-align:center; font-size:16px; color:#7f8c8d; margin-bottom:8px;">'
+                "{{TargetPronunciation}}"
+                "</div>"
+                '<div style="text-align:center; font-size:13px; color:#999; margin-bottom:12px;">'
+                "{{TargetPartOfSpeech}}"
+                "</div>"
+                '<div style="text-align:center; font-size:14px; margin:10px;">{{TargetMnemonic}}</div>'
+                '<div style="text-align:center; font-size:16px; margin:10px; color:#2c3e50;">{{TargetExampleSentence}}</div>'
+                '{{#ExampleAudio}}'
+                '<div style="text-align:center; margin:6px 0 10px;">{{ExampleAudio}}</div>'
+                '{{/ExampleAudio}}'
+                '<div style="text-align:center; font-size:14px; color:#666;">{{SourceExampleSentence}}</div>'
+                '{{/Typing}}'
+            ),
+        },
+    ],
 )
 
 
@@ -103,6 +142,7 @@ def _card_to_note(card: Card) -> tuple[genanki.Note, list[str]]:
             audio_field,
             image_field,
             example_audio_field,
+            "1" if card.typing else "",
         ],
         guid=genanki.guid_for(card.id),
     )

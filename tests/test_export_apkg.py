@@ -71,6 +71,55 @@ class TestApkgExport(unittest.TestCase):
         export_apkg([], output_path, deck_name="Empty Deck")
         self.assertTrue(output_path.exists())
 
+    def test_export_typing_card(self):
+        """Typing cards should export with the Typing field set to '1'."""
+        tmpdir = tempfile.mkdtemp()
+        output_path = Path(tmpdir) / "test.apkg"
+        cards = [
+            Card(
+                id="card-typing",
+                source_word="dog",
+                target_language="en",
+                target_word="Hund",
+                target_pronunciation="/dɒɡ/",
+                target_example_sentence="The dog plays! 🐕",
+                source_example_sentence="Der Hund spielt! 🐕",
+                target_mnemonic='<span style="color:red">dog</span>',
+                target_part_of_speech="noun",
+                status="enriched",
+                typing=True,
+            ),
+        ]
+        export_apkg(cards, output_path, deck_name="Typing Deck")
+        self.assertTrue(output_path.exists())
+        self.assertTrue(zipfile.is_zipfile(output_path))
+
+    def test_export_mixed_typing_and_basic(self):
+        """A deck can contain both basic and typing cards."""
+        tmpdir = tempfile.mkdtemp()
+        output_path = Path(tmpdir) / "test.apkg"
+        cards = [
+            Card(
+                id="card-basic",
+                source_word="dog",
+                target_language="en",
+                target_word="Hund",
+                status="enriched",
+                typing=False,
+            ),
+            Card(
+                id="card-typing",
+                source_word="cat",
+                target_language="en",
+                target_word="Katze",
+                status="enriched",
+                typing=True,
+            ),
+        ]
+        export_apkg(cards, output_path, deck_name="Mixed Deck")
+        self.assertTrue(output_path.exists())
+        self.assertTrue(zipfile.is_zipfile(output_path))
+
 
 if __name__ == "__main__":
     unittest.main()
