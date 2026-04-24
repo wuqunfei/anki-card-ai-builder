@@ -61,6 +61,20 @@ class TestCard(unittest.TestCase):
         with self.assertRaises(Exception):
             Card(source_word="test")
 
+    def test_typing_defaults_to_false(self):
+        card = Card(source_word="test", source_language="de", target_language="en")
+        self.assertFalse(card.typing)
+
+    def test_typing_can_be_set_true(self):
+        card = Card(source_word="test", source_language="de", target_language="en", typing=True)
+        self.assertTrue(card.typing)
+
+    def test_typing_roundtrip(self):
+        card = Card(source_word="test", source_language="de", target_language="en", typing=True)
+        data = card.model_dump()
+        card2 = Card(**data)
+        self.assertTrue(card2.typing)
+
 
 if __name__ == "__main__":
     unittest.main()

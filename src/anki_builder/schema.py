@@ -34,3 +34,6 @@ class Card(BaseModel):
     # - Root (coral): <span style="color:#e07b7b">...</span>
     # - Suffix (green): <span style="color:#6dba6d">...</span>
     target_mnemonic: str | None = None
+
+    # --- Card Type ---
+    typing: bool = False                       # True = "type in the answer" card
