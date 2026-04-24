@@ -4,6 +4,7 @@ import unicodedata
 
 import anthropic
 
+from anki_builder.constants import MINIMAX_BASE_URL, MINIMAX_MODEL
 from anki_builder.schema import Card
 
 def _normalize(text: str) -> str:
@@ -11,10 +12,6 @@ def _normalize(text: str) -> str:
     text = unicodedata.normalize("NFD", text.lower())
     text = "".join(c for c in text if unicodedata.category(c) not in ("Mn", "Po", "Ps", "Pe"))
     return text.strip()
-
-
-MINIMAX_BASE_URL = "https://api.minimax.io/anthropic"
-MINIMAX_MODEL = "MiniMax-M2.5"
 
 
 def _batch_cards(cards: list[Card], batch_size: int = 20) -> list[list[Card]]:
@@ -39,7 +36,7 @@ def _build_enrichment_prompt(cards: list[Card], source_language: str) -> str:
         f"You are a friendly language tutor for German-speaking kids aged 9-12.\n\n"
         f"For each word below, fill in the missing fields. The source language is "
         f"'{source_language}'. Keep sentences simple, natural, and kid-friendly with "
-        f"serval emojis sprinkled in.\n\n"
+        f"several emojis sprinkled in.\n\n"
         f"For EVERY word, you MUST generate:\n"
         f"- `target_part_of_speech`: the grammatical category (noun, verb, adjective, etc.)\n"
         f"- `source_gender`: grammatical gender of the source word if it's a noun (\"m\", \"f\", \"n\"), otherwise null\n"

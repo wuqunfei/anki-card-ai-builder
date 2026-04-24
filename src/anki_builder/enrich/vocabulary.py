@@ -3,8 +3,7 @@ import re
 
 import anthropic
 
-MINIMAX_BASE_URL = "https://api.minimax.io/anthropic"
-MINIMAX_MODEL = "MiniMax-M2.5"
+from anki_builder.constants import MINIMAX_BASE_URL, MINIMAX_MODEL
 
 
 def _build_text_prompt(text: str, target_language: str, source_language: str) -> str:
