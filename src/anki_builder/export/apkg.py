@@ -58,30 +58,28 @@ CARD_MODEL = genanki.Model(
             "name": "Type-in",
             "qfmt": (
                 '{{#Typing}}'
-                '<div style="text-align:center; font-size:28px; font-weight:bold; margin:20px; color:#2c3e50;">'
+                '<div style="text-align:center; font-size:26px; font-weight:bold; margin:10px 0 6px; color:#2c3e50;">'
                 "{{SourceWord}}"
                 "</div>"
-                '<div style="text-align:center; margin:10px;">{{Image}}</div>'
-                '<div style="text-align:center;">{{Audio}}</div>'
-                '<div style="text-align:center; margin:20px;">{{type:TargetWord}}</div>'
+                '<div style="text-align:center; margin:6px 0;">{{Image}}</div>'
+                '<div style="text-align:center; margin:4px 0;">{{Audio}}</div>'
+                '<div style="text-align:center; margin:10px 0;">{{type:TargetWord}}</div>'
                 '{{/Typing}}'
             ),
             "afmt": (
                 '{{#Typing}}'
-                '{{FrontSide}}<hr id="answer">'
-                '<div style="text-align:center; font-size:22px; color:#333; margin:10px;">{{TargetWord}}</div>'
-                '<div style="text-align:center; font-size:16px; color:#7f8c8d; margin-bottom:8px;">'
-                "{{TargetPronunciation}}"
-                "</div>"
-                '<div style="text-align:center; font-size:13px; color:#999; margin-bottom:12px;">'
-                "{{TargetPartOfSpeech}}"
-                "</div>"
-                '<div style="text-align:center; font-size:14px; margin:10px;">{{TargetMnemonic}}</div>'
-                '<div style="text-align:center; font-size:16px; margin:10px; color:#2c3e50;">{{TargetExampleSentence}}</div>'
-                '{{#ExampleAudio}}'
-                '<div style="text-align:center; margin:6px 0 10px;">{{ExampleAudio}}</div>'
-                '{{/ExampleAudio}}'
+                '{{FrontSide}}<hr id="answer" style="margin:6px 0;">'
+                '<div style="text-align:center; font-size:20px; color:#333; margin:6px 0 2px;">{{TargetWord}}</div>'
+                '<div style="text-align:center; margin-bottom:6px;">'
+                '<span style="font-size:14px; color:#7f8c8d;">{{TargetPronunciation}}</span>'
+                ' <span style="font-size:12px; color:#999;">{{TargetPartOfSpeech}}</span>'
+                '</div>'
+                '<div style="text-align:center; font-size:15px; margin:4px 0;">{{TargetMnemonic}}</div>'
+                '<div style="text-align:center; font-size:16px; margin:4px 0; color:#2c3e50;">{{TargetExampleSentence}}</div>'
                 '<div style="text-align:center; font-size:14px; color:#666;">{{SourceExampleSentence}}</div>'
+                '{{#ExampleAudio}}'
+                '<div style="text-align:center; margin:2px 0;">{{ExampleAudio}}</div>'
+                '{{/ExampleAudio}}'
                 '{{/Typing}}'
             ),
         },
@@ -116,7 +114,7 @@ def _card_to_note(card: Card) -> tuple[genanki.Note, list[str]]:
     image_field = ""
     if card.image_file and Path(card.image_file).exists():
         image_filename = Path(card.image_file).name
-        image_field = f'<img src="{image_filename}" style="max-width:350px;">'
+        image_field = f'<img src="{image_filename}" style="max-width:250px;">'
         media_files.append(card.image_file)
 
     example_audio_field = ""
