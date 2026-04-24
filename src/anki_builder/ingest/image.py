@@ -60,5 +60,9 @@ def ingest_image(path: Path, target_language: str, source_language: str = "de", 
         card_data.pop("image_file", None)
         card_data["source_language"] = source_language
         card_data["target_language"] = target_language
+        # Gemini prompt already requests all enrichment fields;
+        # mark as enriched if the key fields are present
+        if card_data.get("target_word"):
+            card_data["status"] = "enriched"
         cards.append(Card(**card_data))
     return cards
