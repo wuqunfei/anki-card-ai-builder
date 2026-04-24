@@ -30,15 +30,15 @@ class TestCLI(unittest.TestCase):
             self._create_xlsx(Path("vocab.xlsx"))
             result = runner.invoke(main, ["ingest", "--input", "vocab.xlsx", "--lang-target", "en"])
             self.assertEqual(result.exit_code, 0, msg=result.output)
-            self.assertTrue(Path(".anki-builder/cards.json").exists())
+            self.assertTrue(Path("output/cards.json").exists())
 
     @patch("anki_builder.cli.enrich_cards")
     def test_enrich_command(self, mock_enrich):
         mock_enrich.return_value = []
         runner = CliRunner()
         with runner.isolated_filesystem():
-            Path(".anki-builder").mkdir()
-            Path(".anki-builder/cards.json").write_text("[]")
+            Path("output").mkdir()
+            Path("output/cards.json").write_text("[]")
             result = runner.invoke(
                 main, ["enrich"],
                 env={"MINIMAX_API_KEY": "test-key"},
@@ -48,8 +48,8 @@ class TestCLI(unittest.TestCase):
     def test_export_command(self):
         runner = CliRunner()
         with runner.isolated_filesystem():
-            Path(".anki-builder").mkdir()
-            Path(".anki-builder/cards.json").write_text("[]")
+            Path("output").mkdir()
+            Path("output/cards.json").write_text("[]")
             result = runner.invoke(main, ["export", "--deck", "Test"])
             self.assertEqual(result.exit_code, 0, msg=result.output)
             self.assertTrue(Path("output/Test.apkg").exists())

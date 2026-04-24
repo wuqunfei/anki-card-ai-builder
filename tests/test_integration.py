@@ -55,7 +55,7 @@ class TestFullPipeline(unittest.TestCase):
             )
             self.assertEqual(result.exit_code, 0, msg=result.output)
 
-            cards_data = json.loads(Path(".anki-builder/cards.json").read_text())
+            cards_data = json.loads(Path("output/cards.json").read_text())
             self.assertEqual(len(cards_data), 2)
             self.assertEqual(cards_data[0]["source_word"], "dog")
             self.assertEqual(cards_data[0]["target_part_of_speech"], "noun")

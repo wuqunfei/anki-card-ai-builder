@@ -15,7 +15,7 @@ from anki_builder.media.audio import generate_audio_batch
 from anki_builder.media.image import generate_image_batch
 from anki_builder.export.apkg import export_apkg
 
-WORK_DIR = Path(".anki-builder")
+WORK_DIR = Path("output")
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp", ".heic", ".heif"}
 
 
@@ -108,7 +108,7 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
     if input_path and words:
         raise click.ClickException("Use either --input or --words, not both.")
 
-    config = load_config(WORK_DIR)
+    config = load_config()
     state = StateManager(WORK_DIR)
 
     # Validate API keys
@@ -158,18 +158,18 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
 
     if (need_audio or need_image) and not (no_audio and no_images):
         click.echo("Step 3/4: Generating media...")
-        if not no_audio and config.media.audio_enabled and need_audio:
+        if not no_audio and config.audio_enabled and need_audio:
             click.echo(f"  Generating audio for {len(need_audio)} cards ({len(enriched) - len(need_audio)} already done)...")
             enriched = generate_audio_batch(enriched, state.media_dir)
-        elif not no_audio and config.media.audio_enabled:
+        elif not no_audio and config.audio_enabled:
             click.echo(f"  Audio: all {len(enriched)} cards already have audio, skipping.")
 
-        if not no_images and config.media.image_enabled and need_image:
+        if not no_images and config.image_enabled and need_image:
             click.echo(f"  Generating images for {len(need_image)} cards ({len(enriched) - len(need_image)} already done)...")
             enriched = asyncio.run(generate_image_batch(
-                enriched, state.media_dir, config.minimax_api_key, config.media.concurrency,
+                enriched, state.media_dir, config.minimax_api_key, config.concurrency,
             ))
-        elif not no_images and config.media.image_enabled:
+        elif not no_images and config.image_enabled:
             click.echo(f"  Images: all {len(enriched)} cards already have images, skipping.")
 
         click.echo("  Media complete.")
@@ -184,7 +184,7 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
     click.echo(f"  Media folder: {state.media_dir.resolve()}")
     click.echo(f"  Cards: {len(updated)}")
     click.echo(f"\nRun 'anki-builder review' to see card details.")
-    name = deck_name or config.export.default_deck_name
+    name = deck_name or config.default_deck_name
     click.echo(f"When ready, run: anki-builder export --deck \"{name}\"")
 
 
@@ -200,7 +200,7 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
     if input_path and words:
         raise click.ClickException("Use either --input or --words, not both.")
 
-    config = load_config(WORK_DIR)
+    config = load_config()
     state = StateManager(WORK_DIR)
 
     if words:
@@ -237,7 +237,7 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
 @main.command()
 def enrich():
     """Step 2: Fill missing card fields (translation, pronunciation, examples) using AI."""
-    config = load_config(WORK_DIR)
+    config = load_config()
     config.require_minimax_key()
     state = StateManager(WORK_DIR)
 
@@ -262,8 +262,8 @@ def enrich():
 @click.option("--no-audio", is_flag=True, help="Skip audio generation")
 def media(no_images: bool, no_audio: bool):
     """Step 3: Generate TTS audio and AI images for cards."""
-    config = load_config(WORK_DIR)
-    if not no_images and config.media.image_enabled:
+    config = load_config()
+    if not no_images and config.image_enabled:
         config.require_minimax_key()
     state = StateManager(WORK_DIR)
     cards = state.load_cards()
@@ -275,18 +275,18 @@ def media(no_images: bool, no_audio: bool):
     need_audio = [c for c in cards if not c.audio_file]
     need_image = [c for c in cards if not c.image_file]
 
-    if not no_audio and config.media.audio_enabled:
+    if not no_audio and config.audio_enabled:
         if need_audio:
             click.echo(f"Generating audio for {len(need_audio)} cards ({len(cards) - len(need_audio)} already done)...")
             cards = generate_audio_batch(cards, state.media_dir)
         else:
             click.echo(f"Audio: all {len(cards)} cards already have audio, skipping.")
 
-    if not no_images and config.media.image_enabled:
+    if not no_images and config.image_enabled:
         if need_image:
             click.echo(f"Generating images for {len(need_image)} cards ({len(cards) - len(need_image)} already done)...")
             cards = asyncio.run(generate_image_batch(
-                cards, state.media_dir, config.minimax_api_key, config.media.concurrency,
+                cards, state.media_dir, config.minimax_api_key, config.concurrency,
             ))
         else:
             click.echo(f"Images: all {len(cards)} cards already have images, skipping.")
@@ -325,19 +325,32 @@ def review():
 
 @main.command()
 @click.option("--deck", "deck_name", default=None, help="Deck name (default: Vocabulary)")
-@click.option("--output", "output_path", default=None, help="Output .apkg file path (default: output/<deck>.apkg)")
+@click.option("--output", "output_path", default=None, help="Output .apkg file path")
 @click.option("--prune", is_flag=True, help="Remove cards not in current source")
 def export(deck_name: str | None, output_path: str | None, prune: bool):
     """Step 5: Export cards with media to an Anki .apkg file."""
-    config = load_config(WORK_DIR)
+    config = load_config()
     state = StateManager(WORK_DIR)
     cards = state.load_cards()
 
-    name = deck_name or config.export.default_deck_name
-    out = Path(output_path) if output_path else Path(config.export.output_dir) / f"{name}.apkg"
+    name = deck_name or config.default_deck_name
+    out = Path(output_path) if output_path else WORK_DIR / f"{name}.apkg"
 
     click.echo(f"Exporting {len(cards)} cards to {out}...")
     export_apkg(cards, out, name)
     click.echo(f"Done! Created {out}")
+
+
+@main.command()
+@click.confirmation_option(prompt="This will delete all cards, media, and exported files in output/. Continue?")
+def clean():
+    """Remove the output/ folder (cards, media, .apkg) to start fresh."""
+    import shutil
+
+    if WORK_DIR.exists():
+        shutil.rmtree(WORK_DIR)
+        click.echo(f"Removed {WORK_DIR}/")
+    else:
+        click.echo("Nothing to clean.")
 
 

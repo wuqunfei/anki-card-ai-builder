@@ -36,7 +36,6 @@ dependencies = [
     { name = "pydantic" },
     { name = "pymupdf" },
     { name = "python-dotenv" },
-    { name = "pyyaml" },
 ]
 
 [package.dev-dependencies]
@@ -58,7 +57,6 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.9" },
     { name = "pymupdf", specifier = ">=1.24" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
-    { name = "pyyaml", specifier = ">=6.0" },
 ]
 
 [package.metadata.requires-dev]

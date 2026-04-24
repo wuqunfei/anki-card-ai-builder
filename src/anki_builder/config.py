@@ -1,31 +1,18 @@
 import os
-from pathlib import Path
 
 import click
-import yaml
 from dotenv import load_dotenv
 
 load_dotenv()
-from pydantic import BaseModel, Field, ValidationError
 
 
-class MediaConfig(BaseModel):
-    audio_enabled: bool = True
-    image_enabled: bool = True
-    concurrency: int = 5
-
-
-class ExportConfig(BaseModel):
-    default_deck_name: str = "Vocabulary"
-    output_dir: str = "./output"
-
-
-class Config(BaseModel):
-    default_source_language: str = "de"
-    default_target_language: str = "en"
-    learner_profile: str = "ages 9-12, kid-friendly with emojis"
-    media: MediaConfig = Field(default_factory=MediaConfig)
-    export: ExportConfig = Field(default_factory=ExportConfig)
+class Config:
+    def __init__(self) -> None:
+        self.learner_profile = os.environ.get("LEARNER_PROFILE", "ages 9-12, kid-friendly with emojis")
+        self.audio_enabled = os.environ.get("MEDIA_AUDIO_ENABLED", "true").lower() == "true"
+        self.image_enabled = os.environ.get("MEDIA_IMAGE_ENABLED", "true").lower() == "true"
+        self.concurrency = int(os.environ.get("MEDIA_CONCURRENCY", "5"))
+        self.default_deck_name = os.environ.get("EXPORT_DECK_NAME", "Vocabulary")
 
     @property
     def minimax_api_key(self) -> str:
@@ -50,14 +37,5 @@ class Config(BaseModel):
             )
 
 
-def load_config(work_dir: Path) -> Config:
-    config_path = work_dir / "config.yaml"
-    if not config_path.exists():
-        return Config()
-    with open(config_path) as f:
-        data = yaml.safe_load(f) or {}
-    try:
-        return Config(**data)
-    except ValidationError as e:
-        errors = "; ".join(f"{err['loc'][0]}: {err['msg']}" for err in e.errors())
-        raise click.ClickException(f"Invalid config.yaml: {errors}")
+def load_config() -> Config:
+    return Config()
