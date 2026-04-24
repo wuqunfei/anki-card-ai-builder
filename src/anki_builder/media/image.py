@@ -2,12 +2,11 @@ import asyncio
 import base64
 from pathlib import Path
 
+import click
 import httpx
 
+from anki_builder.constants import MAX_RETRIES, MINIMAX_IMAGE_MODEL, MINIMAX_IMAGE_URL
 from anki_builder.schema import Card
-
-MINIMAX_IMAGE_URL = "https://api.minimax.io/v1/image_generation"
-MINIMAX_IMAGE_MODEL = "image-01"
 
 
 def _build_image_prompt(word: str, target_language: str) -> str:
@@ -42,7 +41,7 @@ async def generate_image_for_card(
         "response_format": "base64",
     }
 
-    for attempt in range(3):
+    for attempt in range(MAX_RETRIES):
         resp = await client.post(
             MINIMAX_IMAGE_URL,
             headers=headers,
@@ -56,10 +55,10 @@ async def generate_image_for_card(
             image_bytes = base64.b64decode(image_list[0])
             image_path.write_bytes(image_bytes)
             return card.model_copy(update={"image_file": str(image_path)})
-        if attempt < 2:
+        if attempt < MAX_RETRIES - 1:
             await asyncio.sleep(2 ** attempt)
 
-    print(f"Warning: image generation failed for '{card.source_word}', skipping.")
+    click.echo(f"Warning: image generation failed for '{card.source_word}', skipping.")
     return card
 
 
