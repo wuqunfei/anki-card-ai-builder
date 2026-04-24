@@ -18,8 +18,9 @@ from anki_builder.schema import Card
 PROMPT_PATH = Path(__file__).parent / "prompt.md"
 
 
-def _load_system_prompt() -> str:
-    return PROMPT_PATH.read_text(encoding="utf-8")
+def _load_system_prompt(target_language: str, source_language: str) -> str:
+    template = PROMPT_PATH.read_text(encoding="utf-8")
+    return template.format(target_language=target_language, source_language=source_language)
 
 
 def ingest_image(path: Path, target_language: str, source_language: str = "de", google_api_key: str = "") -> list[Card]:
@@ -33,7 +34,7 @@ def ingest_image(path: Path, target_language: str, source_language: str = "de", 
                 model="gemini-3-flash-preview",
                 contents=["Extract ALL vocabulary items from this image as JSON. Do not skip any words — include every single vocabulary entry visible on the page.", img],
                 config=types.GenerateContentConfig(
-                    system_instruction=_load_system_prompt(),
+                    system_instruction=_load_system_prompt(target_language, source_language),
                     max_output_tokens=65536,
                 ),
             )
