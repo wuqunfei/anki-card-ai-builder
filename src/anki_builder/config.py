@@ -1,11 +1,12 @@
 import os
 from pathlib import Path
 
+import click
 import yaml
 from dotenv import load_dotenv
 
 load_dotenv()
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 
 class MediaConfig(BaseModel):
@@ -34,6 +35,20 @@ class Config(BaseModel):
     def google_api_key(self) -> str:
         return os.environ.get("GOOGLE_API_KEY", "")
 
+    def require_minimax_key(self) -> None:
+        if not self.minimax_api_key:
+            raise click.ClickException(
+                "MINIMAX_API_KEY is required but not set. "
+                "Add it to your .env file or set the environment variable."
+            )
+
+    def require_google_key(self) -> None:
+        if not self.google_api_key:
+            raise click.ClickException(
+                "GOOGLE_API_KEY is required but not set. "
+                "Add it to your .env file or set the environment variable."
+            )
+
 
 def load_config(work_dir: Path) -> Config:
     config_path = work_dir / "config.yaml"
@@ -41,4 +56,8 @@ def load_config(work_dir: Path) -> Config:
         return Config()
     with open(config_path) as f:
         data = yaml.safe_load(f) or {}
-    return Config(**data)
+    try:
+        return Config(**data)
+    except ValidationError as e:
+        errors = "; ".join(f"{err['loc'][0]}: {err['msg']}" for err in e.errors())
+        raise click.ClickException(f"Invalid config.yaml: {errors}")
