@@ -29,11 +29,15 @@ class Card(BaseModel):
     target_synonyms: str | None= None  # Similar words (comma-separated)
     target_antonyms: str | None = None  # Opposite words (comma-separated)
 
-    # Word breakdown as HTML with soft colored parts: Prefix + Root + Suffix
-    # - Prefix (blue): <span style="color:#5b9bd5">...</span>
-    # - Root (coral): <span style="color:#e07b7b">...</span>
-    # - Suffix (green): <span style="color:#6dba6d">...</span>
+    # --- Etymology & Mnemonics ---
+    # Morpheme breakdown: Prefix (blue #5b9bd5) + Root (coral #e07b7b) + Suffix (green #6dba6d)
     target_mnemonic: str | None = None
+    # Origin chain to PIE: warm gold tones per stage (#8B6914, #B8860B, #D4A854)
+    target_origin: str | None = None
+    # Cognates across EN/DE/FR/Latin: purple tones (#8e7cc3, #a78bfa)
+    target_cognates: str | None = None
+    # Memory hook: colored when referencing morphemes
+    target_memory_hook: str | None = None
 
     # --- Card Type ---
     typing: bool = False                       # True = "type in the answer" card

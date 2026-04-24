@@ -65,7 +65,8 @@ class StateManager:
                 update_data = {}
                 for field in ["target_word", "target_pronunciation",
                               "target_example_sentence", "source_example_sentence",
-                              "target_mnemonic", "target_part_of_speech",
+                              "target_mnemonic", "target_origin", "target_cognates",
+                              "target_memory_hook", "target_part_of_speech",
                               "audio_file", "image_file",
                               "target_example_audio"]:
                     old_val = getattr(old, field)

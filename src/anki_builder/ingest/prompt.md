@@ -29,11 +29,10 @@ Return a JSON object with a key "cards" containing a list of objects:
 - target_example_sentence: A kid-friendly target language sentence with emojis.
 - target_synonyms: 1-2 simple similar words (comma-separated), or null.
 - target_antonyms: 1-2 simple opposite words (comma-separated), or null.
-- target_mnemonic: Word breakdown as HTML with soft colored parts:
-  * Prefix (soft blue): <span style="color:#5b9bd5">...</span>
-  * Root (soft coral): <span style="color:#e07b7b">...</span>
-  * Suffix (soft green): <span style="color:#6dba6d">...</span>
-  * Join parts with " + ". ONLY provide if the word has meaningful parts (prefixes, suffixes, or compound structure). If the word is a simple root (e.g., "chat", "chien"), set to null.
+- target_mnemonic: Morpheme breakdown using <span> tags joined by " + ". Example: <span style="color:#5b9bd5">in-</span> + <span style="color:#e07b7b">croy</span> + <span style="color:#6dba6d">-able</span>. Null if atomic.
+- target_origin: Origin chain using <span> tags with gold tones. Example: <span style="color:#8B6914">PIE *krey-</span> → <span style="color:#B8860B">Latin credere</span> → <span style="color:#D4A854">Old French incroyable</span>. Null if none.
+- target_cognates: Cognates using <span> tags with purple tones. Example: <span style="color:#8e7cc3">EN</span> <i>incredible</i>, <span style="color:#a78bfa">DE</span> <i>unglaublich</i>, <span style="color:#7c3aed">LA</span> <i>incredibilis</i>. Null if none.
+- target_memory_hook: One-line memory hook using <span> tags with morpheme colors. Example: <span style="color:#5b9bd5">in-</span> = not, <span style="color:#e07b7b">croy</span> = believe, <span style="color:#6dba6d">-able</span> = can be → not believable! Null if none.
 
 # Rules
 1. Completeness: Extract EVERY vocabulary item visible on the page. Do not skip any words. If the page has 30+ items, return 30+ cards.

@@ -5,7 +5,7 @@ import genanki
 
 from anki_builder.schema import Card
 
-MODEL_ID = int(hashlib.md5(b"anki-builder-model-v4").hexdigest()[:8], 16)
+MODEL_ID = int(hashlib.md5(b"anki-builder-model-v5").hexdigest()[:8], 16)
 
 CARD_MODEL = genanki.Model(
     MODEL_ID,
@@ -17,6 +17,9 @@ CARD_MODEL = genanki.Model(
         {"name": "TargetExampleSentence"},
         {"name": "SourceExampleSentence"},
         {"name": "TargetMnemonic"},
+        {"name": "TargetOrigin"},
+        {"name": "TargetCognates"},
+        {"name": "TargetMemoryHook"},
         {"name": "TargetPartOfSpeech"},
         {"name": "Audio"},
         {"name": "Image"},
@@ -46,7 +49,10 @@ CARD_MODEL = genanki.Model(
                 '{{^Typing}}'
                 '{{FrontSide}}<hr id="answer">'
                 '<div style="text-align:center; font-size:22px; color:#333; margin:10px;">{{SourceWord}}</div>'
-                '<div style="text-align:center; font-size:14px; margin:10px;">{{TargetMnemonic}}</div>'
+                '{{#TargetMnemonic}}<div style="text-align:center; font-size:14px; margin:6px 0;">{{TargetMnemonic}}</div>{{/TargetMnemonic}}'
+                '{{#TargetOrigin}}<div style="text-align:center; font-size:13px; margin:4px 0;">{{TargetOrigin}}</div>{{/TargetOrigin}}'
+                '{{#TargetCognates}}<div style="text-align:center; font-size:13px; margin:4px 0;">{{TargetCognates}}</div>{{/TargetCognates}}'
+                '{{#TargetMemoryHook}}<div style="text-align:center; font-size:13px; margin:4px 0;">{{TargetMemoryHook}}</div>{{/TargetMemoryHook}}'
                 '<div style="text-align:center; font-size:16px; margin:10px; color:#2c3e50;">{{TargetExampleSentence}}</div>'
                 '{{#ExampleAudio}}'
                 '<div style="text-align:center; margin:6px 0 10px;">{{ExampleAudio}}</div>'
@@ -75,9 +81,12 @@ CARD_MODEL = genanki.Model(
                 '<span style="font-size:14px; color:#7f8c8d;">{{TargetPronunciation}}</span>'
                 ' <span style="font-size:12px; color:#999;">{{TargetPartOfSpeech}}</span>'
                 '</div>'
-                '<div style="text-align:center; font-size:15px; margin:4px 0;">{{TargetMnemonic}}</div>'
-                '<div style="text-align:center; font-size:16px; margin:4px 0; color:#2c3e50;">{{TargetExampleSentence}}</div>'
-                '<div style="text-align:center; font-size:14px; color:#666;">{{SourceExampleSentence}}</div>'
+                '{{#TargetMnemonic}}<div style="text-align:center; font-size:14px; margin:4px 0;">{{TargetMnemonic}}</div>{{/TargetMnemonic}}'
+                '{{#TargetOrigin}}<div style="text-align:center; font-size:12px; margin:3px 0;">{{TargetOrigin}}</div>{{/TargetOrigin}}'
+                '{{#TargetCognates}}<div style="text-align:center; font-size:12px; margin:3px 0;">{{TargetCognates}}</div>{{/TargetCognates}}'
+                '{{#TargetMemoryHook}}<div style="text-align:center; font-size:13px; margin:3px 0;">{{TargetMemoryHook}}</div>{{/TargetMemoryHook}}'
+                '<div style="text-align:center; font-size:14px; margin:4px 0; color:#2c3e50;">{{TargetExampleSentence}}</div>'
+                '<div style="text-align:center; font-size:13px; color:#666;">{{SourceExampleSentence}}</div>'
                 '{{#ExampleAudio}}'
                 '<div style="text-align:center; margin:2px 0;">{{ExampleAudio}}</div>'
                 '{{/ExampleAudio}}'
@@ -137,6 +146,9 @@ def _card_to_note(card: Card) -> tuple[genanki.Note, list[str]]:
             card.target_example_sentence or "",
             card.source_example_sentence or "",
             card.target_mnemonic or "",
+            card.target_origin or "",
+            card.target_cognates or "",
+            card.target_memory_hook or "",
             card.target_part_of_speech or "",
             audio_field,
             image_field,
