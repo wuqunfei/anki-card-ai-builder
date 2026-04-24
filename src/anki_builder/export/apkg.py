@@ -5,7 +5,7 @@ import genanki
 
 from anki_builder.schema import Card
 
-MODEL_ID = int(hashlib.md5(b"anki-builder-model-v3").hexdigest()[:8], 16)
+MODEL_ID = int(hashlib.md5(b"anki-builder-model-v4").hexdigest()[:8], 16)
 
 CARD_MODEL = genanki.Model(
     MODEL_ID,
@@ -21,6 +21,7 @@ CARD_MODEL = genanki.Model(
         {"name": "Audio"},
         {"name": "Image"},
         {"name": "ExampleAudio"},
+        {"name": "TargetWordPlain"},
         {"name": "Typing"},
     ],
     templates=[
@@ -63,7 +64,7 @@ CARD_MODEL = genanki.Model(
                 "</div>"
                 '<div style="text-align:center; margin:6px 0;">{{Image}}</div>'
                 '<div style="text-align:center; margin:4px 0;">{{Audio}}</div>'
-                '<div style="text-align:center; margin:10px 0;">{{type:TargetWord}}</div>'
+                '<div style="text-align:center; margin:10px 0;">{{type:TargetWordPlain}}</div>'
                 '{{/Typing}}'
             ),
             "afmt": (
@@ -124,10 +125,8 @@ def _card_to_note(card: Card) -> tuple[genanki.Note, list[str]]:
         media_files.append(card.target_example_audio)
 
     source_display = _format_word_with_gender(card.source_word, card.source_gender)
-    if card.typing:
-        target_display = card.target_word or ""
-    else:
-        target_display = _format_word_with_gender(card.target_word or "", card.target_gender)
+    target_display = _format_word_with_gender(card.target_word or "", card.target_gender)
+    target_plain = card.target_word or ""
 
     note = genanki.Note(
         model=CARD_MODEL,
@@ -142,6 +141,7 @@ def _card_to_note(card: Card) -> tuple[genanki.Note, list[str]]:
             audio_field,
             image_field,
             example_audio_field,
+            target_plain,
             "1" if card.typing else "",
         ],
         guid=genanki.guid_for(card.id),
