@@ -31,6 +31,8 @@ def _detect_input_type(path_or_url: str) -> str:
     if GDRIVE_URL_PATTERN.search(path_or_url):
         return "gdrive"
     path = Path(path_or_url)
+    if path.is_dir():
+        return "folder"
     suffix = path.suffix.lower()
     if suffix in (".xlsx", ".csv"):
         return "excel"
@@ -42,165 +44,56 @@ def _detect_input_type(path_or_url: str) -> str:
         raise click.ClickException(f"Unsupported file type: {suffix}")
 
 
-@click.group()
+def _ingest_folder(
+    folder: Path,
+    target_language: str,
+    source_language: str,
+    google_api_key: str,
+    minimax_api_key: str,
+) -> list[Card]:
+    supported = IMAGE_EXTENSIONS | {".pdf"}
+    files = sorted(f for f in folder.iterdir() if f.suffix.lower() in supported)
+    if not files:
+        raise click.ClickException(f"No supported files found in {folder}")
+
+    all_cards: list[Card] = []
+    for f in files:
+        suffix = f.suffix.lower()
+        if suffix in IMAGE_EXTENSIONS:
+            click.echo(f"  Processing image: {f.name}")
+            cards = ingest_image(f, target_language, source_language, google_api_key)
+        elif suffix == ".pdf":
+            click.echo(f"  Processing PDF: {f.name}")
+            cards = ingest_pdf(f, target_language, minimax_api_key, source_language)
+        else:
+            continue
+        all_cards.extend(cards)
+    return all_cards
+
+
+class OrderedGroup(click.Group):
+    def list_commands(self, ctx):
+        return list(self.commands)
+
+    def format_commands(self, ctx, formatter):
+        commands = []
+        for subcommand in self.list_commands(ctx):
+            cmd = self.commands[subcommand]
+            help_text = cmd.get_short_help_str(limit=300)
+            commands.append((subcommand, help_text))
+
+        if commands:
+            with formatter.section("Commands"):
+                formatter.write_dl(commands)
+
+
+@click.group(cls=OrderedGroup, context_settings={"max_content_width": 200})
 def main():
     """anki-builder: Anki Card AI Builder — generate flashcards for language learning."""
 
 
 @main.command()
-@click.option("--input", "input_path", default=None, type=str, help="Input file path or Google Drive folder URL")
-@click.option("--words", "words", default=None, type=str, help="Comma-separated words (e.g. \"Glove,Squirrel,impossible\")")
-@click.option("--lang", "target_language", required=True, help="Target language code (en, fr, zh)")
-@click.option("--source-lang", "source_language", default=None, help="Source language code (default: from config)")
-@click.option("--column-map", type=str, default=None, help="Column mapping as key=value pairs, comma-separated")
-def ingest(input_path: str | None, words: str | None, target_language: str, source_language: str | None, column_map: str | None):
-    """Extract vocabulary from input files or word list."""
-    if not input_path and not words:
-        raise click.ClickException("Provide either --input or --words.")
-    if input_path and words:
-        raise click.ClickException("Use either --input or --words, not both.")
-
-    config = load_config(WORK_DIR)
-    state = StateManager(WORK_DIR)
-    src_lang = source_language or config.default_source_language
-
-    if words:
-        cards = _words_to_cards(words, target_language, src_lang)
-        click.echo(f"Ingesting {len(cards)} words from command line...")
-    else:
-        input_type = _detect_input_type(input_path)
-        col_map = None
-        if column_map:
-            try:
-                col_map = dict(pair.split("=") for pair in column_map.split(","))
-            except ValueError:
-                raise click.ClickException(
-                    "Invalid --column-map format. Expected key=value pairs separated by commas, "
-                    'e.g. --column-map word=Wort,translation=Übersetzung'
-                )
-
-        click.echo(f"Ingesting {input_path} as {input_type}...")
-        if input_type in ("image", "gdrive"):
-            config.require_google_key()
-        if input_type in ("pdf", "gdrive"):
-            config.require_minimax_key()
-
-        if input_type == "gdrive":
-            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.minimax_api_key, src_lang)
-        elif input_type == "excel":
-            path = Path(input_path)
-            cards = ingest_excel(path, target_language, src_lang, col_map)
-        elif input_type == "pdf":
-            path = Path(input_path)
-            cards = ingest_pdf(path, target_language, config.minimax_api_key, src_lang)
-        elif input_type == "image":
-            path = Path(input_path)
-            cards = ingest_image(path, target_language, src_lang, config.google_api_key)
-
-    merged = state.merge_cards(cards)
-    state.save_cards(merged)
-    click.echo(f"Extracted {len(cards)} cards. Total: {len(merged)} cards.")
-
-
-@main.command()
-@click.option("--source-lang", "source_language", default=None, help="Source language override")
-def enrich(source_language: str | None):
-    """Fill missing card fields using AI."""
-    config = load_config(WORK_DIR)
-    config.require_minimax_key()
-    state = StateManager(WORK_DIR)
-    src_lang = source_language or config.default_source_language
-
-    cards = state.load_cards()
-    if not cards:
-        click.echo("No cards found. Run 'ingest' first.")
-        return
-
-    to_enrich = [c for c in cards if c.status == "extracted"]
-    click.echo(f"Enriching {len(to_enrich)} of {len(cards)} cards...")
-
-    enriched = enrich_cards(cards, config.minimax_api_key, src_lang)
-    state.save_cards(enriched)
-    click.echo(f"Enrichment complete.")
-
-
-@main.command()
-@click.option("--no-images", is_flag=True, help="Skip image generation")
-@click.option("--no-audio", is_flag=True, help="Skip audio generation")
-def media(no_images: bool, no_audio: bool):
-    """Generate audio and images for cards."""
-    config = load_config(WORK_DIR)
-    if not no_images and config.media.image_enabled:
-        config.require_minimax_key()
-    state = StateManager(WORK_DIR)
-    cards = state.load_cards()
-
-    if not cards:
-        click.echo("No cards found. Run 'ingest' first.")
-        return
-
-    if not no_audio and config.media.audio_enabled:
-        click.echo(f"Generating audio for {len(cards)} cards...")
-        cards = generate_audio_batch(cards, state.media_dir)
-
-    if not no_images and config.media.image_enabled:
-        click.echo(f"Generating images for {len(cards)} cards...")
-        cards = asyncio.run(generate_image_batch(
-            cards, state.media_dir, config.minimax_api_key, config.media.concurrency,
-        ))
-
-    updated = finalize_card_status(cards, no_images, no_audio)
-    state.save_cards(updated)
-    click.echo("Media generation complete.")
-
-
-@main.command()
-def review():
-    """Show cards and media for manual review before export."""
-    state = StateManager(WORK_DIR)
-    cards = state.load_cards()
-
-    if not cards:
-        click.echo("No cards found. Run 'ingest' first.")
-        return
-
-    click.echo(f"\n{len(cards)} cards ready for review.\n")
-    click.echo(f"Media folder: {state.media_dir.resolve()}\n")
-
-    for i, card in enumerate(cards, 1):
-        click.echo(f"[{i}] {card.source_word}")
-        click.echo(f"    Target Word:    {card.target_word or '(missing)'}")
-        click.echo(f"    Pronunciation:  {card.target_pronunciation or '(missing)'}")
-        click.echo(f"    Example:        {card.target_example_sentence or '(missing)'}")
-        click.echo(f"    Mnemonic:       {card.target_mnemonic or '(missing)'}")
-        click.echo(f"    Audio:          {'✓' if card.audio_file else '✗'}")
-        click.echo(f"    Image:          {'✓' if card.image_file else '✗'}")
-        click.echo()
-
-    click.echo(f"Review images and audio in: {state.media_dir.resolve()}")
-    click.echo("When ready, run: anki-builder export --deck \"Your Deck Name\"")
-
-
-@main.command()
-@click.option("--deck", "deck_name", default=None, help="Deck name")
-@click.option("--output", "output_path", default=None, help="Output .apkg file path")
-@click.option("--prune", is_flag=True, help="Remove cards not in current source")
-def export(deck_name: str | None, output_path: str | None, prune: bool):
-    """Export cards to .apkg file."""
-    config = load_config(WORK_DIR)
-    state = StateManager(WORK_DIR)
-    cards = state.load_cards()
-
-    name = deck_name or config.export.default_deck_name
-    out = Path(output_path) if output_path else Path(config.export.output_dir) / f"{name}.apkg"
-
-    click.echo(f"Exporting {len(cards)} cards to {out}...")
-    export_apkg(cards, out, name)
-    click.echo(f"Done! Created {out}")
-
-
-@main.command()
-@click.option("--input", "input_path", default=None, type=str, help="Input file path or Google Drive folder URL")
+@click.option("--input", "input_path", default=None, type=str, help="Input file, folder, or Google Drive URL")
 @click.option("--words", "words", default=None, type=str, help='Comma-separated words (e.g. "Glove,Squirrel,impossible")')
 @click.option("--lang", "target_language", required=True, help="Target language code (en, fr, zh)")
 @click.option("--deck", "deck_name", default=None, help="Deck name for export")
@@ -209,7 +102,7 @@ def export(deck_name: str | None, output_path: str | None, prune: bool):
 @click.option("--source-lang", "source_language", default=None, help="Source language code (default: from config)")
 def run(input_path: str | None, words: str | None, target_language: str, deck_name: str | None,
         no_images: bool, no_audio: bool, source_language: str | None):
-    """Run pipeline: ingest → enrich → media → review. Export separately after review."""
+    """Run full pipeline: ingest, enrich, media, review (export separately)."""
     if not input_path and not words:
         raise click.ClickException("Provide either --input or --words.")
     if input_path and words:
@@ -228,7 +121,7 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
         click.echo(f"Step 1/4: Ingesting {len(cards)} words from command line...")
     else:
         input_type = _detect_input_type(input_path)
-        if input_type in ("image", "gdrive"):
+        if input_type in ("image", "folder", "gdrive"):
             config.require_google_key()
         click.echo(f"Step 1/4: Ingesting {input_path}...")
         if input_type == "gdrive":
@@ -242,6 +135,8 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
         elif input_type == "image":
             path = Path(input_path)
             cards = ingest_image(path, target_language, src_lang, config.google_api_key)
+        elif input_type == "folder":
+            cards = _ingest_folder(Path(input_path), target_language, src_lang, config.google_api_key, config.minimax_api_key)
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)
@@ -273,3 +168,149 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
     click.echo(f"\nRun 'anki-builder review' to see card details.")
     name = deck_name or config.export.default_deck_name
     click.echo(f"When ready, run: anki-builder export --deck \"{name}\"")
+
+
+@main.command()
+@click.option("--input", "input_path", default=None, type=str, help="Input file, folder, or Google Drive URL")
+@click.option("--words", "words", default=None, type=str, help="Comma-separated words (e.g. \"Glove,Squirrel,impossible\")")
+@click.option("--lang", "target_language", required=True, help="Target language code (en, fr, zh)")
+@click.option("--source-lang", "source_language", default=None, help="Source language code (default: from config)")
+def ingest(input_path: str | None, words: str | None, target_language: str, source_language: str | None):
+    """Step 1: Extract vocabulary from a file, folder, URL, or word list."""
+    if not input_path and not words:
+        raise click.ClickException("Provide either --input or --words.")
+    if input_path and words:
+        raise click.ClickException("Use either --input or --words, not both.")
+
+    config = load_config(WORK_DIR)
+    state = StateManager(WORK_DIR)
+    src_lang = source_language or config.default_source_language
+
+    if words:
+        cards = _words_to_cards(words, target_language, src_lang)
+        click.echo(f"Ingesting {len(cards)} words from command line...")
+    else:
+        input_type = _detect_input_type(input_path)
+
+        click.echo(f"Ingesting {input_path} as {input_type}...")
+        if input_type in ("image", "folder", "gdrive"):
+            config.require_google_key()
+        if input_type in ("pdf", "gdrive"):
+            config.require_minimax_key()
+
+        if input_type == "gdrive":
+            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.minimax_api_key, src_lang)
+        elif input_type == "excel":
+            path = Path(input_path)
+            cards = ingest_excel(path, target_language, src_lang)
+        elif input_type == "pdf":
+            path = Path(input_path)
+            cards = ingest_pdf(path, target_language, config.minimax_api_key, src_lang)
+        elif input_type == "image":
+            path = Path(input_path)
+            cards = ingest_image(path, target_language, src_lang, config.google_api_key)
+        elif input_type == "folder":
+            cards = _ingest_folder(Path(input_path), target_language, src_lang, config.google_api_key, config.minimax_api_key)
+
+    merged = state.merge_cards(cards)
+    state.save_cards(merged)
+    click.echo(f"Extracted {len(cards)} cards. Total: {len(merged)} cards.")
+
+
+@main.command()
+@click.option("--source-lang", "source_language", default=None, help="Source language override")
+def enrich(source_language: str | None):
+    """Step 2: Fill missing card fields (translation, pronunciation, examples) using AI."""
+    config = load_config(WORK_DIR)
+    config.require_minimax_key()
+    state = StateManager(WORK_DIR)
+    src_lang = source_language or config.default_source_language
+
+    cards = state.load_cards()
+    if not cards:
+        click.echo("No cards found. Run 'ingest' first.")
+        return
+
+    to_enrich = [c for c in cards if c.status == "extracted"]
+    click.echo(f"Enriching {len(to_enrich)} of {len(cards)} cards...")
+
+    enriched = enrich_cards(cards, config.minimax_api_key, src_lang)
+    state.save_cards(enriched)
+    click.echo(f"Enrichment complete.")
+
+
+@main.command()
+@click.option("--no-images", is_flag=True, help="Skip image generation")
+@click.option("--no-audio", is_flag=True, help="Skip audio generation")
+def media(no_images: bool, no_audio: bool):
+    """Step 3: Generate TTS audio and AI images for cards."""
+    config = load_config(WORK_DIR)
+    if not no_images and config.media.image_enabled:
+        config.require_minimax_key()
+    state = StateManager(WORK_DIR)
+    cards = state.load_cards()
+
+    if not cards:
+        click.echo("No cards found. Run 'ingest' first.")
+        return
+
+    if not no_audio and config.media.audio_enabled:
+        click.echo(f"Generating audio for {len(cards)} cards...")
+        cards = generate_audio_batch(cards, state.media_dir)
+
+    if not no_images and config.media.image_enabled:
+        click.echo(f"Generating images for {len(cards)} cards...")
+        cards = asyncio.run(generate_image_batch(
+            cards, state.media_dir, config.minimax_api_key, config.media.concurrency,
+        ))
+
+    updated = finalize_card_status(cards, no_images, no_audio)
+    state.save_cards(updated)
+    click.echo("Media generation complete.")
+
+
+@main.command()
+def review():
+    """Step 4: Show all cards and media status for review before export."""
+    state = StateManager(WORK_DIR)
+    cards = state.load_cards()
+
+    if not cards:
+        click.echo("No cards found. Run 'ingest' first.")
+        return
+
+    click.echo(f"\n{len(cards)} cards ready for review.\n")
+    click.echo(f"Media folder: {state.media_dir.resolve()}\n")
+
+    for i, card in enumerate(cards, 1):
+        click.echo(f"[{i}] {card.source_word}")
+        click.echo(f"    Target Word:    {card.target_word or '(missing)'}")
+        click.echo(f"    Pronunciation:  {card.target_pronunciation or '(missing)'}")
+        click.echo(f"    Example:        {card.target_example_sentence or '(missing)'}")
+        click.echo(f"    Mnemonic:       {card.target_mnemonic or '(missing)'}")
+        click.echo(f"    Audio:          {'✓' if card.audio_file else '✗'}")
+        click.echo(f"    Image:          {'✓' if card.image_file else '✗'}")
+        click.echo()
+
+    click.echo(f"Review images and audio in: {state.media_dir.resolve()}")
+    click.echo("When ready, run: anki-builder export --deck \"Your Deck Name\"")
+
+
+@main.command()
+@click.option("--deck", "deck_name", default=None, help="Deck name (default: Vocabulary)")
+@click.option("--output", "output_path", default=None, help="Output .apkg file path (default: output/<deck>.apkg)")
+@click.option("--prune", is_flag=True, help="Remove cards not in current source")
+def export(deck_name: str | None, output_path: str | None, prune: bool):
+    """Step 5: Export cards with media to an Anki .apkg file."""
+    config = load_config(WORK_DIR)
+    state = StateManager(WORK_DIR)
+    cards = state.load_cards()
+
+    name = deck_name or config.export.default_deck_name
+    out = Path(output_path) if output_path else Path(config.export.output_dir) / f"{name}.apkg"
+
+    click.echo(f"Exporting {len(cards)} cards to {out}...")
+    export_apkg(cards, out, name)
+    click.echo(f"Done! Created {out}")
+
+
