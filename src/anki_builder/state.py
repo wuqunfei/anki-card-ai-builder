@@ -85,3 +85,17 @@ class StateManager:
                     merged.append(card)
 
         return merged
+
+
+def finalize_card_status(
+    cards: list[Card], no_images: bool = False, no_audio: bool = False
+) -> list[Card]:
+    updated = []
+    for card in cards:
+        if card.status in ("extracted", "enriched") and card.audio_file and card.image_file:
+            updated.append(card.model_copy(update={"status": "complete"}))
+        elif card.status in ("extracted", "enriched") and (no_images or no_audio):
+            updated.append(card.model_copy(update={"status": "complete"}))
+        else:
+            updated.append(card)
+    return updated
