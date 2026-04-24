@@ -143,23 +143,42 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
     click.echo(f"  Extracted {len(cards)} cards. Total: {len(merged)}.")
 
     # Enrich
-    click.echo("Step 2/4: Enriching cards with AI...")
-    enriched = enrich_cards(merged, config.minimax_api_key, src_lang)
-    state.save_cards(enriched)
-    click.echo("  Enrichment complete.")
+    to_enrich = [c for c in merged if c.status == "extracted"]
+    if to_enrich:
+        click.echo(f"Step 2/4: Enriching {len(to_enrich)} of {len(merged)} cards with AI...")
+        enriched = enrich_cards(merged, config.minimax_api_key, src_lang)
+        state.save_cards(enriched)
+        click.echo("  Enrichment complete.")
+    else:
+        enriched = merged
+        click.echo(f"Step 2/4: All {len(merged)} cards already enriched, skipping.")
 
     # Media
-    click.echo("Step 3/4: Generating media...")
-    if not no_audio and config.media.audio_enabled:
-        enriched = generate_audio_batch(enriched, state.media_dir)
-    if not no_images and config.media.image_enabled:
-        enriched = asyncio.run(generate_image_batch(
-            enriched, state.media_dir, config.minimax_api_key, config.media.concurrency,
-        ))
+    need_audio = [c for c in enriched if not c.audio_file]
+    need_image = [c for c in enriched if not c.image_file]
+
+    if (need_audio or need_image) and not (no_audio and no_images):
+        click.echo("Step 3/4: Generating media...")
+        if not no_audio and config.media.audio_enabled and need_audio:
+            click.echo(f"  Generating audio for {len(need_audio)} cards ({len(enriched) - len(need_audio)} already done)...")
+            enriched = generate_audio_batch(enriched, state.media_dir)
+        elif not no_audio and config.media.audio_enabled:
+            click.echo(f"  Audio: all {len(enriched)} cards already have audio, skipping.")
+
+        if not no_images and config.media.image_enabled and need_image:
+            click.echo(f"  Generating images for {len(need_image)} cards ({len(enriched) - len(need_image)} already done)...")
+            enriched = asyncio.run(generate_image_batch(
+                enriched, state.media_dir, config.minimax_api_key, config.media.concurrency,
+            ))
+        elif not no_images and config.media.image_enabled:
+            click.echo(f"  Images: all {len(enriched)} cards already have images, skipping.")
+
+        click.echo("  Media complete.")
+    else:
+        click.echo(f"Step 3/4: All {len(enriched)} cards already have media, skipping.")
 
     updated = finalize_card_status(enriched, no_images, no_audio)
     state.save_cards(updated)
-    click.echo("  Media complete.")
 
     # Review prompt
     click.echo(f"\nStep 4/4: Review your cards and media.")
@@ -232,8 +251,11 @@ def enrich(source_language: str | None):
         return
 
     to_enrich = [c for c in cards if c.status == "extracted"]
-    click.echo(f"Enriching {len(to_enrich)} of {len(cards)} cards...")
+    if not to_enrich:
+        click.echo(f"All {len(cards)} cards already enriched, nothing to do.")
+        return
 
+    click.echo(f"Enriching {len(to_enrich)} of {len(cards)} cards ({len(cards) - len(to_enrich)} already done)...")
     enriched = enrich_cards(cards, config.minimax_api_key, src_lang)
     state.save_cards(enriched)
     click.echo(f"Enrichment complete.")
@@ -254,15 +276,24 @@ def media(no_images: bool, no_audio: bool):
         click.echo("No cards found. Run 'ingest' first.")
         return
 
+    need_audio = [c for c in cards if not c.audio_file]
+    need_image = [c for c in cards if not c.image_file]
+
     if not no_audio and config.media.audio_enabled:
-        click.echo(f"Generating audio for {len(cards)} cards...")
-        cards = generate_audio_batch(cards, state.media_dir)
+        if need_audio:
+            click.echo(f"Generating audio for {len(need_audio)} cards ({len(cards) - len(need_audio)} already done)...")
+            cards = generate_audio_batch(cards, state.media_dir)
+        else:
+            click.echo(f"Audio: all {len(cards)} cards already have audio, skipping.")
 
     if not no_images and config.media.image_enabled:
-        click.echo(f"Generating images for {len(cards)} cards...")
-        cards = asyncio.run(generate_image_batch(
-            cards, state.media_dir, config.minimax_api_key, config.media.concurrency,
-        ))
+        if need_image:
+            click.echo(f"Generating images for {len(need_image)} cards ({len(cards) - len(need_image)} already done)...")
+            cards = asyncio.run(generate_image_batch(
+                cards, state.media_dir, config.minimax_api_key, config.media.concurrency,
+            ))
+        else:
+            click.echo(f"Images: all {len(cards)} cards already have images, skipping.")
 
     updated = finalize_card_status(cards, no_images, no_audio)
     state.save_cards(updated)
