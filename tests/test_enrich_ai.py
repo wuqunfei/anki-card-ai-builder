@@ -11,8 +11,10 @@ class TestAIEnrichment(unittest.TestCase):
         cards = [
             Card(source_word="dog", target_language="en"),
         ]
-        prompt = _build_enrichment_prompt(cards, source_language="de")
+        prompt = _build_enrichment_prompt(cards)
         self.assertIn("dog", prompt)
+        self.assertIn("source_language", prompt)
+        self.assertIn("target_language", prompt)
         self.assertIn("kid-friendly", prompt.lower())
         self.assertIn("emoji", prompt.lower())
         self.assertIn("target_mnemonic", prompt)
@@ -55,7 +57,7 @@ class TestAIEnrichment(unittest.TestCase):
         mock_client.messages.create.return_value = mock_response
 
         cards = [Card(source_word="dog", target_language="en")]
-        result = enrich_cards(cards, minimax_api_key="test-key", source_language="de")
+        result = enrich_cards(cards, minimax_api_key="test-key")
 
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].target_word, "Hund")

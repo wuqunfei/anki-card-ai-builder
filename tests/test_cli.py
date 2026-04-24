@@ -28,7 +28,7 @@ class TestCLI(unittest.TestCase):
         runner = CliRunner()
         with runner.isolated_filesystem():
             self._create_xlsx(Path("vocab.xlsx"))
-            result = runner.invoke(main, ["ingest", "--input", "vocab.xlsx", "--lang", "en"])
+            result = runner.invoke(main, ["ingest", "--input", "vocab.xlsx", "--lang-target", "en"])
             self.assertEqual(result.exit_code, 0, msg=result.output)
             self.assertTrue(Path(".anki-builder/cards.json").exists())
 

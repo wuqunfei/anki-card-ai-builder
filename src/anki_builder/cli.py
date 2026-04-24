@@ -95,13 +95,13 @@ def main():
 @main.command()
 @click.option("--input", "input_path", default=None, type=str, help="Input file, folder, or Google Drive URL")
 @click.option("--words", "words", default=None, type=str, help='Comma-separated words (e.g. "Glove,Squirrel,impossible")')
-@click.option("--lang", "target_language", required=True, help="Target language code (en, fr, zh)")
+@click.option("--lang-target", "target_language", required=True, help="Target language code (en, fr, zh)")
+@click.option("--lang-source", "source_language", default="de", help="Source language code (default: de)")
 @click.option("--deck", "deck_name", default=None, help="Deck name for export")
 @click.option("--no-images", is_flag=True, help="Skip image generation")
 @click.option("--no-audio", is_flag=True, help="Skip audio generation")
-@click.option("--source-lang", "source_language", default=None, help="Source language code (default: from config)")
-def run(input_path: str | None, words: str | None, target_language: str, deck_name: str | None,
-        no_images: bool, no_audio: bool, source_language: str | None):
+def run(input_path: str | None, words: str | None, target_language: str, source_language: str,
+        deck_name: str | None, no_images: bool, no_audio: bool):
     """Run full pipeline: ingest, enrich, media, review (export separately)."""
     if not input_path and not words:
         raise click.ClickException("Provide either --input or --words.")
@@ -110,14 +110,13 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
 
     config = load_config(WORK_DIR)
     state = StateManager(WORK_DIR)
-    src_lang = source_language or config.default_source_language
 
     # Validate API keys
     config.require_minimax_key()
 
     # Ingest
     if words:
-        cards = _words_to_cards(words, target_language, src_lang)
+        cards = _words_to_cards(words, target_language, source_language)
         click.echo(f"Step 1/4: Ingesting {len(cards)} words from command line...")
     else:
         input_type = _detect_input_type(input_path)
@@ -125,18 +124,18 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
             config.require_google_key()
         click.echo(f"Step 1/4: Ingesting {input_path}...")
         if input_type == "gdrive":
-            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.minimax_api_key, src_lang)
+            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.minimax_api_key, source_language)
         elif input_type == "excel":
             path = Path(input_path)
-            cards = ingest_excel(path, target_language, src_lang)
+            cards = ingest_excel(path, target_language, source_language)
         elif input_type == "pdf":
             path = Path(input_path)
-            cards = ingest_pdf(path, target_language, config.minimax_api_key, src_lang)
+            cards = ingest_pdf(path, target_language, config.minimax_api_key, source_language)
         elif input_type == "image":
             path = Path(input_path)
-            cards = ingest_image(path, target_language, src_lang, config.google_api_key)
+            cards = ingest_image(path, target_language, source_language, config.google_api_key)
         elif input_type == "folder":
-            cards = _ingest_folder(Path(input_path), target_language, src_lang, config.google_api_key, config.minimax_api_key)
+            cards = _ingest_folder(Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key)
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)
@@ -146,7 +145,7 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
     to_enrich = [c for c in merged if c.status == "extracted"]
     if to_enrich:
         click.echo(f"Step 2/4: Enriching {len(to_enrich)} of {len(merged)} cards with AI...")
-        enriched = enrich_cards(merged, config.minimax_api_key, src_lang)
+        enriched = enrich_cards(merged, config.minimax_api_key)
         state.save_cards(enriched)
         click.echo("  Enrichment complete.")
     else:
@@ -192,9 +191,9 @@ def run(input_path: str | None, words: str | None, target_language: str, deck_na
 @main.command()
 @click.option("--input", "input_path", default=None, type=str, help="Input file, folder, or Google Drive URL")
 @click.option("--words", "words", default=None, type=str, help="Comma-separated words (e.g. \"Glove,Squirrel,impossible\")")
-@click.option("--lang", "target_language", required=True, help="Target language code (en, fr, zh)")
-@click.option("--source-lang", "source_language", default=None, help="Source language code (default: from config)")
-def ingest(input_path: str | None, words: str | None, target_language: str, source_language: str | None):
+@click.option("--lang-target", "target_language", required=True, help="Target language code (en, fr, zh)")
+@click.option("--lang-source", "source_language", default="de", help="Source language code (default: de)")
+def ingest(input_path: str | None, words: str | None, target_language: str, source_language: str):
     """Step 1: Extract vocabulary from a file, folder, URL, or word list."""
     if not input_path and not words:
         raise click.ClickException("Provide either --input or --words.")
@@ -203,10 +202,9 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
 
     config = load_config(WORK_DIR)
     state = StateManager(WORK_DIR)
-    src_lang = source_language or config.default_source_language
 
     if words:
-        cards = _words_to_cards(words, target_language, src_lang)
+        cards = _words_to_cards(words, target_language, source_language)
         click.echo(f"Ingesting {len(cards)} words from command line...")
     else:
         input_type = _detect_input_type(input_path)
@@ -218,18 +216,18 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
             config.require_minimax_key()
 
         if input_type == "gdrive":
-            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.minimax_api_key, src_lang)
+            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.minimax_api_key, source_language)
         elif input_type == "excel":
             path = Path(input_path)
-            cards = ingest_excel(path, target_language, src_lang)
+            cards = ingest_excel(path, target_language, source_language)
         elif input_type == "pdf":
             path = Path(input_path)
-            cards = ingest_pdf(path, target_language, config.minimax_api_key, src_lang)
+            cards = ingest_pdf(path, target_language, config.minimax_api_key, source_language)
         elif input_type == "image":
             path = Path(input_path)
-            cards = ingest_image(path, target_language, src_lang, config.google_api_key)
+            cards = ingest_image(path, target_language, source_language, config.google_api_key)
         elif input_type == "folder":
-            cards = _ingest_folder(Path(input_path), target_language, src_lang, config.google_api_key, config.minimax_api_key)
+            cards = _ingest_folder(Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key)
 
     merged = state.merge_cards(cards)
     state.save_cards(merged)
@@ -237,13 +235,11 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
 
 
 @main.command()
-@click.option("--source-lang", "source_language", default=None, help="Source language override")
-def enrich(source_language: str | None):
+def enrich():
     """Step 2: Fill missing card fields (translation, pronunciation, examples) using AI."""
     config = load_config(WORK_DIR)
     config.require_minimax_key()
     state = StateManager(WORK_DIR)
-    src_lang = source_language or config.default_source_language
 
     cards = state.load_cards()
     if not cards:
@@ -256,7 +252,7 @@ def enrich(source_language: str | None):
         return
 
     click.echo(f"Enriching {len(to_enrich)} of {len(cards)} cards ({len(cards) - len(to_enrich)} already done)...")
-    enriched = enrich_cards(cards, config.minimax_api_key, src_lang)
+    enriched = enrich_cards(cards, config.minimax_api_key)
     state.save_cards(enriched)
     click.echo(f"Enrichment complete.")
 

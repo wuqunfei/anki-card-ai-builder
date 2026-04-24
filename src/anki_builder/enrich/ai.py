@@ -18,10 +18,14 @@ def _batch_cards(cards: list[Card], batch_size: int = 20) -> list[list[Card]]:
     return [cards[i:i + batch_size] for i in range(0, len(cards), batch_size)]
 
 
-def _build_enrichment_prompt(cards: list[Card], source_language: str) -> str:
+def _build_enrichment_prompt(cards: list[Card]) -> str:
     card_list = []
     for c in cards:
-        entry = {"source_word": c.source_word, "target_language": c.target_language}
+        entry = {
+            "source_word": c.source_word,
+            "source_language": c.source_language,
+            "target_language": c.target_language,
+        }
         if c.target_word:
             entry["target_word"] = c.target_word
         if c.target_pronunciation:
@@ -33,9 +37,10 @@ def _build_enrichment_prompt(cards: list[Card], source_language: str) -> str:
         card_list.append(entry)
 
     return (
-        f"You are a friendly language tutor for German-speaking kids aged 9-12.\n\n"
-        f"For each word below, fill in the missing fields. The source language is "
-        f"'{source_language}'. Keep sentences simple, natural, and kid-friendly with "
+        f"You are a friendly language tutor for kids aged 9-12.\n\n"
+        f"For each word below, fill in the missing fields. Each word has its own "
+        f"source_language and target_language — use them to determine translation direction. "
+        f"Keep sentences simple, natural, and kid-friendly with "
         f"several emojis sprinkled in.\n\n"
         f"For EVERY word, you MUST generate:\n"
         f"- `target_part_of_speech`: the grammatical category (noun, verb, adjective, etc.)\n"
@@ -50,10 +55,10 @@ def _build_enrichment_prompt(cards: list[Card], source_language: str) -> str:
         f"breakdown (e.g. \"glove\", \"cat\", \"dog\"), set target_mnemonic to null.\n\n"
         f"For fields that are already filled, keep the existing value.\n"
         f"For missing fields, generate:\n"
-        f"- `target_word`: translate to {source_language}\n"
+        f"- `target_word`: translate source_word into the source_language\n"
         f"- `target_pronunciation`: IPA for English/French, pinyin with tone marks for Chinese\n"
         f"- `target_example_sentence`: a kid-friendly sentence in the TARGET language (the language of target_word) with emojis\n"
-        f"- `source_example_sentence`: translation of that sentence to {source_language}, also kid-friendly with emojis\n\n"
+        f"- `source_example_sentence`: translation of that sentence into source_language, also kid-friendly with emojis\n\n"
         f"Return ONLY a JSON array with one object per word. Each object must have all fields: "
         f"source_word, target_word, target_pronunciation, target_example_sentence, "
         f"source_example_sentence, target_mnemonic, target_part_of_speech, source_gender, target_gender.\n\n"
@@ -76,7 +81,6 @@ def _parse_enrichment_response(text: str) -> list[dict]:
 def enrich_cards(
     cards: list[Card],
     minimax_api_key: str,
-    source_language: str = "de",
 ) -> list[Card]:
     to_enrich = [c for c in cards if c.status == "extracted"]
     already_done = [c for c in cards if c.status != "extracted"]
@@ -91,7 +95,7 @@ def enrich_cards(
 
     enriched: list[Card] = []
     for batch in _batch_cards(to_enrich):
-        prompt = _build_enrichment_prompt(batch, source_language)
+        prompt = _build_enrichment_prompt(batch)
         response = client.messages.create(
             model=MINIMAX_MODEL,
             max_tokens=16384,

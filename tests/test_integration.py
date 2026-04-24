@@ -26,7 +26,7 @@ class TestFullPipeline(unittest.TestCase):
     @patch("anki_builder.cli.generate_audio_batch")
     @patch("anki_builder.cli.enrich_cards")
     def test_full_run_command(self, mock_enrich, mock_audio, mock_image):
-        def fake_enrich(cards, api_key, src_lang):
+        def fake_enrich(cards, api_key):
             enriched = []
             for c in cards:
                 enriched.append(c.model_copy(update={
@@ -50,7 +50,7 @@ class TestFullPipeline(unittest.TestCase):
             self._create_xlsx(Path("vocab.xlsx"))
             result = runner.invoke(
                 main,
-                ["run", "--input", "vocab.xlsx", "--lang", "en", "--deck", "TestDeck"],
+                ["run", "--input", "vocab.xlsx", "--lang-target", "en", "--deck", "TestDeck"],
                 env={"MINIMAX_API_KEY": "test"},
             )
             self.assertEqual(result.exit_code, 0, msg=result.output)
