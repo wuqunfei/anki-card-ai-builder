@@ -68,7 +68,7 @@ class TestIngestImage(unittest.TestCase):
         mock_client_cls.return_value = mock_client
         mock_pil_open.return_value = MagicMock()
 
-        cards = ingest_image(Path("test.png"), target_language="fr", source_language="de")
+        cards = ingest_image(Path("test.png"), target_language="fr", source_language="de", google_api_key="test-key")
 
         self.assertEqual(len(cards), 2)
         self.assertEqual(cards[0].source_word, "Apfel")
@@ -93,7 +93,7 @@ class TestIngestImage(unittest.TestCase):
         mock_client_cls.return_value = mock_client
         mock_pil_open.return_value = MagicMock()
 
-        cards = ingest_image(Path("test.jpg"), target_language="fr")
+        cards = ingest_image(Path("test.jpg"), target_language="fr", google_api_key="test-key")
 
         self.assertEqual(len(cards), 2)
 
@@ -104,7 +104,7 @@ class TestIngestImage(unittest.TestCase):
         mock_client_cls.return_value = mock_client
         mock_pil_open.return_value = MagicMock()
 
-        cards = ingest_image(Path("test.png"), target_language="zh", source_language="en")
+        cards = ingest_image(Path("test.png"), target_language="zh", source_language="en", google_api_key="test-key")
 
         # Language params override whatever Gemini returned
         for card in cards:
@@ -120,7 +120,7 @@ class TestIngestImage(unittest.TestCase):
         mock_pil_open.return_value = MagicMock()
 
         with self.assertRaises(json.JSONDecodeError):
-            ingest_image(Path("test.png"), target_language="fr")
+            ingest_image(Path("test.png"), target_language="fr", google_api_key="test-key")
 
 
 @unittest.skipUnless(os.environ.get("GOOGLE_API_KEY"), "GOOGLE_API_KEY not set")
@@ -141,6 +141,7 @@ class TestIngestImageReal(unittest.TestCase):
                 path=image_path,
                 target_language=target_language,
                 source_language="de",
+                google_api_key=os.environ.get("GOOGLE_API_KEY", ""),
             )
             self.assertIsInstance(cards, list)
             for card in cards:

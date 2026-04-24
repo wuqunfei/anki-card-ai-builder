@@ -3,6 +3,7 @@ import re
 import time
 from pathlib import Path
 
+import click
 import PIL.Image
 import pillow_heif
 from google import genai
@@ -11,9 +12,8 @@ from google.genai.errors import ClientError
 
 pillow_heif.register_heif_opener()
 
+from anki_builder.constants import MAX_RETRIES
 from anki_builder.schema import Card
-
-MAX_RETRIES = 3
 
 PROMPT_PATH = Path(__file__).parent / "prompt.md"
 
@@ -22,9 +22,7 @@ def _load_system_prompt() -> str:
     return PROMPT_PATH.read_text(encoding="utf-8")
 
 
-def ingest_image(path: Path, target_language: str, source_language: str = "de") -> list[Card]:
-    import os
-    google_api_key = os.environ.get("GOOGLE_API_KEY", "")
+def ingest_image(path: Path, target_language: str, source_language: str = "de", google_api_key: str = "") -> list[Card]:
     client = genai.Client(api_key=google_api_key)
 
     img = PIL.Image.open(path)
@@ -44,7 +42,7 @@ def ingest_image(path: Path, target_language: str, source_language: str = "de") 
             if e.code == 429 and attempt < MAX_RETRIES - 1:
                 match = re.search(r"retry in ([\d.]+)s", str(e))
                 wait = float(match.group(1)) + 1 if match else 60
-                print(f"Rate limited, waiting {wait:.0f}s...")
+                click.echo(f"Rate limited, waiting {wait:.0f}s...")
                 time.sleep(wait)
             else:
                 raise
