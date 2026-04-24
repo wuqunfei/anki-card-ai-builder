@@ -209,7 +209,7 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
     state = StateManager(WORK_DIR)
 
     if words:
-        cards = _words_to_cards(words, target_language, source_language)
+        cards = _words_to_cards(words, target_language, source_language, typing)
         click.echo(f"Ingesting {len(cards)} words from command line...")
     else:
         input_type = _detect_input_type(input_path)
