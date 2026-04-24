@@ -1,14 +1,15 @@
 # Anki Card AI Builder
 
-AI-powered Anki flashcard generator for language learning. Extracts vocabulary from various sources, enriches cards with AI (translations, pronunciations, example sentences, mnemonics), generates audio and images, and exports to `.apkg` for Anki.
+AI-powered Anki flashcard generator for language learning. Extracts vocabulary from various sources, enriches cards with AI (translations, pronunciations, example sentences, mnemonics, synonyms/antonyms), generates audio and images, and exports to `.apkg` for Anki.
 
 ## Features
 
-- **Multiple input sources**: Excel/CSV, PDF, images (OCR), Google Drive folders, or direct word input
-- **AI enrichment**: Translations, IPA pronunciation, kid-friendly example sentences, mnemonic word breakdowns
-- **Media generation**: Text-to-speech audio (gTTS) and AI-generated images (MiniMax)
+- **Multiple input sources**: Excel/CSV, PDF, images (OCR via Google Gemini), Google Drive folders, or direct word input
+- **AI enrichment**: Translations, IPA/Pinyin/Romaji pronunciation, grammatical gender, part of speech, example sentences, mnemonic word breakdowns, synonyms, and antonyms — powered by [MiniMax M2.5](https://www.minimax.io/)
+- **Media generation**: Text-to-speech audio (gTTS) and AI-generated cartoon images (MiniMax image-01)
 - **Anki export**: `.apkg` files with HTML card templates and embedded media
 - **Incremental workflow**: Cards are merged across runs, so you can add words over time
+- **HEIC/HEIF support**: Accepts iPhone photos directly for OCR ingestion
 
 ## Setup
 
@@ -26,10 +27,8 @@ cp .env.example .env
 
 | Key | Required for |
 |-----|-------------|
-| `MINIMAX_API_KEY` | AI enrichment + image generation |
-| `GOOGLE_API_KEY` | Google Drive folder ingestion |
-
-OCR is handled locally by [PaddleOCR-VL-1.5](https://huggingface.co/PaddlePaddle/PaddleOCR-VL-1.5) — no API key needed.
+| `MINIMAX_API_KEY` | AI enrichment (MiniMax M2.5) + image generation (MiniMax image-01) |
+| `GOOGLE_API_KEY` | Image OCR (Google Gemini) + Google Drive folder ingestion |
 
 ## Usage
 
@@ -55,7 +54,7 @@ anki-builder run --input vocab.csv --lang en
 # From PDF
 anki-builder run --input textbook.pdf --lang en
 
-# From image (OCR)
+# From image (OCR via Gemini — supports PNG, JPG, HEIC, WebP, etc.)
 anki-builder run --input photo.png --lang en
 
 # From Google Drive folder
@@ -96,6 +95,30 @@ anki-builder run --words "Hund,Katze" --lang en --source-lang de
 
 # Custom deck name
 anki-builder run --input vocab.xlsx --lang en --deck "Unit 5 Words"
+```
+
+## Project Structure
+
+```
+src/anki_builder/
+├── cli.py              # Click CLI with commands: run, ingest, enrich, media, review, export
+├── config.py           # YAML config + env var loading (Pydantic)
+├── schema.py           # Card data model (Pydantic)
+├── state.py            # JSON state persistence + card merging
+├── ingest/
+│   ├── excel.py        # Excel/CSV ingestion (openpyxl)
+│   ├── pdf.py          # PDF text extraction (PyMuPDF)
+│   ├── image.py        # Image OCR (Google Gemini)
+│   └── gdrive.py       # Google Drive folder ingestion
+├── enrich/
+│   ├── ai.py           # AI enrichment (MiniMax M2.5 via Anthropic SDK)
+│   └── vocabulary.py   # Vocabulary helpers
+├── media/
+│   ├── audio.py        # TTS audio generation (gTTS)
+│   └── image.py        # AI image generation (MiniMax image-01)
+└── export/
+    ├── apkg.py         # Anki .apkg export (genanki)
+    └── merge.py        # Card merge logic
 ```
 
 ## Configuration
