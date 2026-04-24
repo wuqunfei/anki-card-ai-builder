@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import click
 import pymupdf
 
 from anki_builder.schema import Card
@@ -24,9 +25,9 @@ def ingest_pdf(
     text = extract_text_from_pdf(path)
 
     if not text.strip():
-        raise NotImplementedError(
-            "Image-based PDF ingestion is not yet available. "
-            "Google Gemini OCR support is planned for a future release."
+        raise click.ClickException(
+            "This PDF contains scanned images instead of selectable text. "
+            "Image-based PDF ingestion is not yet supported."
         )
 
     vocab_items = extract_vocabulary_with_ai(
