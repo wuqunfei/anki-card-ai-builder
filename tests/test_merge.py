@@ -4,7 +4,6 @@ from pathlib import Path
 
 from anki_builder.schema import Card
 from anki_builder.state import StateManager
-from anki_builder.export.merge import merge_and_export
 
 
 class TestMerge(unittest.TestCase):
