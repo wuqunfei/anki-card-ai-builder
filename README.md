@@ -1,8 +1,19 @@
 # Anki Card AI Builder
 
-AI-powered Anki flashcard generator for language learning. Extracts vocabulary from various sources, enriches cards with AI (translations, pronunciations, example sentences, mnemonics, synonyms/antonyms), generates audio and images, and exports to `.apkg` for Anki.
+Turn any vocabulary source into rich, multimedia Anki flashcards — powered by AI.
 
-> **Note**: This tool generates `.apkg` files only. You need the [Anki desktop app](https://apps.ankiweb.net/) or [AnkiMobile](https://apps.apple.com/app/ankimobile-flashcards/id373493387) / [AnkiDroid](https://play.google.com/store/apps/details?id=com.ichi2.anki) to import and study the cards.
+## Why We Need It
+
+Creating good Anki flashcards for language learning takes a lot of manual work. You need translations, pronunciations, example sentences, and ideally images and audio on every card. Adding etymology, mnemonics, and memory hooks makes cards far more effective — but doing all that by hand is painfully slow.
+
+Anki Card AI Builder automates the entire process. Give it a word list, spreadsheet, PDF, or even a photo — and it generates complete, media-rich flashcards ready to import into Anki.
+
+- **AI enrichment** — translations, IPA/Pinyin/Romaji pronunciation, example sentences, synonyms, antonyms, and mnemonics
+- **Color-coded etymology** — morpheme breakdown (prefix / root / suffix), origin chains to Proto-Indo-European roots, cross-language cognates (EN/DE/FR/Latin), and memory hooks
+- **Multimedia** — text-to-speech audio and AI-generated cartoon images on every card
+- **Flexible inputs** — word lists, Excel/CSV, PDF, image OCR (including iPhone HEIC photos), folders, and Google Drive
+- **Personalization** — configurable learner profile (e.g. `"ages 9-12, kid-friendly with emojis"`) tailors card content, examples, and tone to the learner
+- **One command** — from input to `.apkg` file, ready to import into Anki
 
 ## How It Works
 
@@ -17,33 +28,89 @@ flowchart LR
 | Step | What happens | Output |
 |------|-------------|--------|
 | **Ingest** | Extracts vocabulary from your input (words, Excel, PDF, image OCR, Google Drive) | `cards.json` with raw word list |
-| **Enrich** | AI adds translations, IPA pronunciation, example sentences, mnemonics, etymology | `cards.json` with full card data |
+| **Enrich** | AI adds translations, IPA pronunciation, etymology, mnemonics, example sentences | `cards.json` with full card data |
 | **Media** | Generates TTS audio for words and example sentences, plus cartoon images | `media/*.mp3` and `media/*.png` |
 | **Export** | Bundles cards + media into an Anki-compatible package | `.apkg` file ready to import |
 
-The `run` command executes steps 1-3 automatically. Then use `export` to create the `.apkg` file and import it into Anki.
+The `run` command executes steps 1–3 automatically. Then use `export` to create the `.apkg` file and import it into Anki.
 
-## Features
+## Core Features
 
-- **Multiple input sources**: Excel/CSV, PDF, images (OCR via Google Gemini), Google Drive folders, or direct word input
-- **AI enrichment**: Translations, IPA/Pinyin/Romaji pronunciation, grammatical gender, part of speech, example sentences, mnemonic word breakdowns, synonyms, and antonyms — powered by [MiniMax M2.5](https://www.minimax.io/)
-- **Media generation**: Text-to-speech audio (gTTS) and AI-generated cartoon images (MiniMax image-01 or Google Gemini)
-- **Two card types**: Basic (show word, reveal answer) and Type-in (type the answer to practice spelling) — use `--typing` to enable
-- **Anki export**: `.apkg` files with HTML card templates and embedded media
-- **Workspace isolation**: Each run gets its own `workspace/<uuid>` folder — run multiple projects in parallel
-- **Incremental workflow**: Cards are merged across runs, so you can add words over time
-- **HEIC/HEIF support**: Accepts iPhone photos directly for OCR ingestion
+### Input Sources
 
-### Card Types
+- **Word list** — comma-separated via `--words "cat,dog,run"`
+- **Excel/CSV** — `.xlsx` and `.csv` with fuzzy header mapping
+- **PDF** — text-based PDFs (via PyMuPDF + MiniMax)
+- **Image OCR** — `.png`, `.jpg`, `.heic`, `.heif`, `.webp`, `.bmp`, `.tiff` (via Google Gemini)
+- **Folder** — processes all supported images and PDFs in a directory
+- **Google Drive** — downloads and processes all files from a Drive folder URL
+
+### AI Enrichment
+
+- Translations, IPA/Pinyin/Romaji pronunciation, grammatical gender, part of speech
+- Example sentences with translations
+- Synonyms and antonyms
+
+### Etymology & Mnemonics
+
+- Color-coded morpheme breakdown — prefix (blue), root (coral), suffix (green)
+- Origin chain tracing to Proto-Indo-European roots
+- Cross-language cognates across EN/DE/FR/Latin
+- Memory hooks that reference morpheme meanings
+
+### Media Generation
+
+- Text-to-speech audio for words and example sentences (gTTS)
+- AI-generated cartoon images (MiniMax image-01 or Google Gemini)
+
+### Personalization
+
+- Configurable learner profile via `LEARNER_PROFILE` environment variable
+- Example: `"ages 9-12, kid-friendly with emojis"` produces age-appropriate examples and tone
+
+### Export & Card Types
 
 | Type | Flag | Front | Back |
 |------|------|-------|------|
 | **Basic** | (default) | Target word + pronunciation + image + audio | Source word + mnemonic + etymology + example sentences |
 | **Type-in** | `--typing` | Source word + image + audio + text input | Checks typed answer + shows full card details |
 
-## Setup
+- `.apkg` export with HTML card templates and embedded media
+- Workspace isolation — each run gets its own `workspace/<uuid>` folder
+- Incremental merging — re-running with the same workspace adds new words and preserves existing data
 
-Requires Python 3.12+.
+### Supported Languages
+
+| Language | Code | TTS | Tested |
+|----------|------|-----|--------|
+| English | `en` | gTTS | Yes |
+| French | `fr` | gTTS | Yes |
+| German | `de` | gTTS | Yes |
+| Chinese | `zh` | gTTS (zh-CN) | No |
+| Japanese | `ja` | — | No |
+| Korean | `ko` | — | No |
+| Spanish | `es` | — | No |
+| Italian | `it` | — | No |
+| Portuguese | `pt` | — | No |
+| Russian | `ru` | — | No |
+| Arabic | `ar` | — | No |
+
+## What You Get
+
+<p align="center">
+  <img src="examples/Screenshot-Anki-MacApp.png" alt="Example Anki card showing AI-generated content" width="400">
+</p>
+
+An example card in Anki showing: AI-generated cartoon image, IPA pronunciation, color-coded morpheme breakdown (con- + centr + -ate), origin chain, cognates across languages, memory hook, and an example sentence with translation.
+
+## Get Started
+
+### Prerequisites
+
+- Python 3.12+
+- [Anki desktop app](https://apps.ankiweb.net/) or [AnkiMobile](https://apps.apple.com/app/ankimobile-flashcards/id373493387) / [AnkiDroid](https://play.google.com/store/apps/details?id=com.ichi2.anki) for importing `.apkg` files
+
+### Installation
 
 ```bash
 # Install with uv
@@ -60,45 +127,16 @@ cp .env.example .env
 | `MINIMAX_API_KEY` | AI enrichment (MiniMax M2.5) + image generation (MiniMax image-01) |
 | `GOOGLE_API_KEY` | Image OCR (Google Gemini) + Google Drive folder ingestion + Gemini image generation |
 
-## Supported Languages
+### Language Flags
 
-| Language | Code | TTS | Tested |
-|----------|------|-----|--------|
-| English | `en` | gTTS | Yes |
-| French | `fr` | gTTS | Yes |
-| German | `de` | gTTS | Yes |
-| Chinese | `zh` | gTTS (zh-CN) | No |
-| Japanese | `ja` | — | No |
-| Korean | `ko` | — | No |
-| Spanish | `es` | — | No |
-| Italian | `it` | — | No |
-| Portuguese | `pt` | — | No |
-| Russian | `ru` | — | No |
-| Arabic | `ar` | — | No |
+- **`--lang-target`** (required): The language you are **learning**. Appears on the front of the card.
+- **`--lang-source`** (optional, default: `de`): Your **native language**. Shown on the back for reference.
 
-AI enrichment (MiniMax M2.5) supports all languages above. TTS audio (gTTS) currently maps `en`, `fr`, `de`, and `zh` — other languages fall back to the language code directly.
+Example: if you speak German and are learning English: `--lang-target en --lang-source de`
 
-## Supported Input Types
+### Usage
 
-| Input | Extensions / Format | API Used | Notes |
-|-------|-------------------|----------|-------|
-| **Words** | `--words "cat,dog,run"` | None | Comma-separated, parsed locally |
-| **Excel/CSV** | `.xlsx`, `.csv` | None | Fuzzy header mapping (supports DE/EN column names) |
-| **PDF** | `.pdf` | MiniMax M2.5 | Text-based PDFs only (not scanned images) |
-| **Image** | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.tiff`, `.webp`, `.heic`, `.heif` | Google Gemini | OCR extraction, returns pre-enriched cards |
-| **Folder** | Directory path | Gemini + MiniMax | Processes all supported images and PDFs in folder |
-| **Google Drive** | Drive folder URL | Google Drive API + Gemini + MiniMax | Downloads and processes all files in folder |
-
-## Usage
-
-### Language flags
-
-- **`--lang-target`** (required): The language you are **learning**. This is what appears on the front of the card (e.g. `en` for English, `fr` for French).
-- **`--lang-source`** (optional, default: `de`): Your **native language** — the language you already speak. This is shown on the back of the card for reference.
-
-For example, if you speak German and are learning English: `--lang-target en --lang-source de`
-
-### Full pipeline (recommended)
+#### Full pipeline (recommended)
 
 ```bash
 # From word list — creates a new workspace automatically
@@ -123,18 +161,17 @@ anki-builder run --input "https://drive.google.com/drive/folders/..." --lang-tar
 The `run` command prints the workspace path. Use `--output` to continue in an existing workspace:
 
 ```bash
-# Continue in an existing workspace
+# Add more words to an existing workspace
 anki-builder run --words "more,words" --lang-target en --output workspace/a1b2c3d4
 ```
 
-### Step-by-step pipeline
+#### Step-by-step pipeline
 
 Run each step individually, passing the workspace folder with `--output`:
 
 ```bash
 # 1. Ingest words (creates workspace/a1b2c3d4/)
 anki-builder ingest --words "Glove,Squirrel" --lang-target en
-# or: anki-builder ingest --input vocab.xlsx --lang-target en
 
 # 2. Enrich with AI
 anki-builder enrich --output workspace/a1b2c3d4
@@ -149,17 +186,14 @@ anki-builder review --output workspace/a1b2c3d4
 anki-builder export --output workspace/a1b2c3d4 --deck "English Vocabulary"
 ```
 
-### Options
+#### Options
 
 ```bash
 # Skip image or audio generation
 anki-builder run --words "cat,dog" --lang-target en --no-images
 anki-builder run --words "cat,dog" --lang-target en --no-audio
 
-# Set source language (default: de/German)
-anki-builder run --words "Hund,Katze" --lang-target en --lang-source de
-
-# Create "type the answer" cards
+# Create "type the answer" cards (spelling practice)
 anki-builder run --words "cat,dog" --lang-target en --typing
 
 # Custom deck name
@@ -184,22 +218,7 @@ anki-builder clean --output workspace/a1b2c3d4
 | `export` | Export to `.apkg` file | Required |
 | `clean` | Delete a workspace folder | Required |
 
-## Workspace Structure
-
-Each run creates an isolated folder under `workspace/`:
-
-```
-workspace/
-└── a1b2c3d4/           # 8-char UUID
-    ├── cards.json       # All card data (state file)
-    ├── media/           # Generated media
-    │   ├── *_audio.mp3
-    │   ├── *_example_audio.mp3
-    │   └── *_image.png
-    └── English.apkg     # Exported Anki deck
-```
-
-## Configuration
+### Configuration
 
 Environment variables (via `.env`):
 
@@ -214,7 +233,23 @@ Environment variables (via `.env`):
 | `IMAGE_PROVIDER` | `minimax` | Image provider: `minimax` or `gemini` |
 | `EXPORT_DECK_NAME` | `Vocabulary` | Default deck name for export |
 
-## Development
+## Current Status & Roadmap
+
+### Status
+
+Working MVP — usable but still evolving.
+
+- **Tested languages:** English, French, German
+- **Stable input sources:** word list, Excel/CSV, PDF, image OCR
+
+### Roadmap
+
+- [ ] More language support (extensible to any language)
+- [ ] Better card templates and styling
+- [ ] Additional input format testing
+- [ ] Google Drive integration testing
+
+## Contributing
 
 ```bash
 # Install dev dependencies
@@ -223,3 +258,9 @@ uv sync --group dev
 # Run tests
 uv run pytest
 ```
+
+Issues and pull requests are welcome.
+
+## License
+
+MIT
