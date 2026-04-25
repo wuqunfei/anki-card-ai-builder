@@ -30,8 +30,7 @@ def _lang_full_name(code: str) -> str:
 def _build_image_prompt(word: str, target_language: str) -> str:
     lang = _lang_full_name(target_language)
     return (
-        f"A single cute, cartoon illustration of the {lang} word '{word}'. "
-        f"The word means a concept in {lang} — illustrate that concept visually. "
+        f"A single cute, kid-friendly cartoon illustration representing the {lang} word '{word}'. "
         f"Kid-friendly, colorful, clean background. "
         f"Pure illustration only — no text, letters, labels, captions, or speech bubbles."
     )
