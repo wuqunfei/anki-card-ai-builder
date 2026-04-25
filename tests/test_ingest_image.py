@@ -11,44 +11,46 @@ INPUT_DIR = TESTS_DIR / "input"
 OUTPUT_DIR = TESTS_DIR / "output"
 
 
-SAMPLE_GEMINI_RESPONSE = json.dumps({
-    "cards": [
-        {
-            "id": "ignored-id",
-            "unit": "Unité 1",
-            "reference": "Page 12",
-            "status": "extracted",
-            "tags": ["food"],
-            "audio_file": None,
-            "image_file": None,
-            "source_word": "Apfel",
-            "source_language": "de",
-            "source_gender": "m",
-            "source_example_sentence": "Ich esse einen Apfel 🍎",
-            "target_word": "pomme",
-            "target_language": "fr",
-            "target_gender": "f",
-            "target_pronunciation": "/pɔm/",
-            "target_part_of_speech": "noun",
-            "target_example_sentence": "Je mange une pomme 🍎",
-            "target_synonyms": None,
-            "target_antonyms": None,
-            "target_mnemonic": None,
-        },
-        {
-            "source_word": "Katze",
-            "target_word": "chat",
-            "target_language": "fr",
-            "source_language": "de",
-            "unit": "Unité 1",
-            "reference": "Page 12",
-            "tags": ["animals"],
-            "target_pronunciation": "/ʃa/",
-            "target_part_of_speech": "noun",
-            "target_example_sentence": "Le chat dort 🐱",
-        },
-    ]
-})
+SAMPLE_GEMINI_RESPONSE = json.dumps(
+    {
+        "cards": [
+            {
+                "id": "ignored-id",
+                "unit": "Unité 1",
+                "reference": "Page 12",
+                "status": "extracted",
+                "tags": ["food"],
+                "audio_file": None,
+                "image_file": None,
+                "source_word": "Apfel",
+                "source_language": "de",
+                "source_gender": "m",
+                "source_example_sentence": "Ich esse einen Apfel 🍎",
+                "target_word": "pomme",
+                "target_language": "fr",
+                "target_gender": "f",
+                "target_pronunciation": "/pɔm/",
+                "target_part_of_speech": "noun",
+                "target_example_sentence": "Je mange une pomme 🍎",
+                "target_synonyms": None,
+                "target_antonyms": None,
+                "target_mnemonic": None,
+            },
+            {
+                "source_word": "Katze",
+                "target_word": "chat",
+                "target_language": "fr",
+                "source_language": "de",
+                "unit": "Unité 1",
+                "reference": "Page 12",
+                "tags": ["animals"],
+                "target_pronunciation": "/ʃa/",
+                "target_part_of_speech": "noun",
+                "target_example_sentence": "Le chat dort 🐱",
+            },
+        ]
+    }
+)
 
 
 def _mock_client():

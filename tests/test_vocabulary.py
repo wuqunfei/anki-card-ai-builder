@@ -1,11 +1,11 @@
 import json
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from anki_builder.enrich.vocabulary import (
-    extract_vocabulary_with_ai,
     _build_text_prompt,
     _parse_vocabulary_response,
+    extract_vocabulary_with_ai,
 )
 
 
@@ -21,10 +21,12 @@ class TestVocabularyExtraction(unittest.TestCase):
         self.assertIn("JSON", prompt)
 
     def test_parse_vocabulary_response(self):
-        response_text = json.dumps([
-            {"source_word": "dog", "target_word": "Hund"},
-            {"source_word": "cat", "target_word": "Katze"},
-        ])
+        response_text = json.dumps(
+            [
+                {"source_word": "dog", "target_word": "Hund"},
+                {"source_word": "cat", "target_word": "Katze"},
+            ]
+        )
         items = _parse_vocabulary_response(response_text)
         self.assertEqual(len(items), 2)
         self.assertEqual(items[0]["source_word"], "dog")

@@ -4,10 +4,10 @@ from pathlib import Path
 
 import httpx
 
-from anki_builder.schema import Card
 from anki_builder.ingest.excel import ingest_excel
-from anki_builder.ingest.pdf import ingest_pdf
 from anki_builder.ingest.image import ingest_image
+from anki_builder.ingest.pdf import ingest_pdf
+from anki_builder.schema import Card
 
 GDRIVE_API_BASE = "https://www.googleapis.com/drive/v3"
 GDRIVE_URL_PATTERN = re.compile(r"(?:https?://)?drive\.google\.com/drive/folders/([a-zA-Z0-9_-]+)")
@@ -37,7 +37,7 @@ def list_files_in_folder(folder_id: str, google_api_key: str) -> list[dict]:
         }
         if page_token:
             params["pageToken"] = page_token
-        resp = httpx.get(f"{GDRIVE_API_BASE}/files", params=params, timeout=30)
+        resp = httpx.get(f"{GDRIVE_API_BASE}/files", params=params, timeout=30)  # type: ignore[arg-type]
         resp.raise_for_status()
         data = resp.json()
         files.extend(data.get("files", []))

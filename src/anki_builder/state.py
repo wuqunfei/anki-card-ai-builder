@@ -51,9 +51,7 @@ class StateManager:
 
     def merge_cards(self, new_cards: list[Card], prune: bool = False) -> list[Card]:
         existing = self.load_cards()
-        existing_map: dict[tuple[str, str], Card] = {
-            (c.source_word, c.target_language): c for c in existing
-        }
+        existing_map: dict[tuple[str, str], Card] = {(c.source_word, c.target_language): c for c in existing}
 
         merged: list[Card] = []
         seen_keys: set[tuple[str, str]] = set()
@@ -63,12 +61,20 @@ class StateManager:
             if key in existing_map:
                 old = existing_map[key]
                 update_data = {}
-                for field in ["target_word", "target_pronunciation",
-                              "target_example_sentence", "source_example_sentence",
-                              "target_mnemonic", "target_origin", "target_cognates",
-                              "target_memory_hook", "target_part_of_speech",
-                              "audio_file", "image_file",
-                              "target_example_audio"]:
+                for field in [
+                    "target_word",
+                    "target_pronunciation",
+                    "target_example_sentence",
+                    "source_example_sentence",
+                    "target_mnemonic",
+                    "target_origin",
+                    "target_cognates",
+                    "target_memory_hook",
+                    "target_part_of_speech",
+                    "audio_file",
+                    "image_file",
+                    "target_example_audio",
+                ]:
                     old_val = getattr(old, field)
                     new_val = getattr(card, field)
                     if old_val is not None and new_val is None:
@@ -90,9 +96,7 @@ class StateManager:
         return merged
 
 
-def finalize_card_status(
-    cards: list[Card], no_images: bool = False, no_audio: bool = False
-) -> list[Card]:
+def finalize_card_status(cards: list[Card], no_images: bool = False, no_audio: bool = False) -> list[Card]:
     updated = []
     for card in cards:
         if card.status in ("extracted", "enriched") and card.audio_file and card.image_file:

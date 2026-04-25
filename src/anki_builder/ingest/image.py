@@ -10,10 +10,10 @@ from google import genai
 from google.genai import types
 from google.genai.errors import ClientError
 
-pillow_heif.register_heif_opener()
-
 from anki_builder.constants import MAX_RETRIES
 from anki_builder.schema import Card
+
+pillow_heif.register_heif_opener()
 
 PROMPT_PATH = Path(__file__).parent / "prompt.md"
 
@@ -32,7 +32,10 @@ def ingest_image(path: Path, target_language: str, source_language: str = "de", 
         try:
             response = client.models.generate_content(
                 model="gemini-3-flash-preview",
-                contents=["Extract ALL vocabulary items from this image as JSON. Do not skip any words — include every single vocabulary entry visible on the page.", img],
+                contents=[  # type: ignore[arg-type]
+                    "Extract ALL vocabulary items from this image as JSON. Do not skip any words — include every single vocabulary entry visible on the page.",  # noqa: E501
+                    img,
+                ],
                 config=types.GenerateContentConfig(
                     system_instruction=_load_system_prompt(target_language, source_language),
                     max_output_tokens=65536,
@@ -48,7 +51,7 @@ def ingest_image(path: Path, target_language: str, source_language: str = "de", 
             else:
                 raise
 
-    raw_text = response.text
+    raw_text = response.text or ""
     if "```json" in raw_text:
         raw_text = raw_text.split("```json")[1].split("```")[0].strip()
 

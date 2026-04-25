@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from anki_builder.ingest.gdrive import extract_folder_id, ingest_gdrive_folder
 
@@ -20,12 +20,17 @@ class TestGDriveIngestion(unittest.TestCase):
     @patch("anki_builder.ingest.gdrive.list_files_in_folder")
     @patch("anki_builder.ingest.gdrive.ingest_excel")
     def test_ingest_gdrive_folder_with_excel(self, mock_ingest_excel, mock_list, mock_download):
-        from anki_builder.schema import Card
-        from pathlib import Path
         import tempfile
+        from pathlib import Path
+
+        from anki_builder.schema import Card
 
         mock_list.return_value = [
-            {"id": "file1", "name": "vocab.xlsx", "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+            {
+                "id": "file1",
+                "name": "vocab.xlsx",
+                "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            },
         ]
         mock_download.return_value = Path(tempfile.mktemp(suffix=".xlsx"))
         mock_ingest_excel.return_value = [

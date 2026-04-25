@@ -5,16 +5,16 @@ from pathlib import Path
 import click
 
 from anki_builder.config import load_config
-from anki_builder.schema import Card
-from anki_builder.state import StateManager, finalize_card_status
-from anki_builder.ingest.excel import ingest_excel
-from anki_builder.ingest.pdf import ingest_pdf
-from anki_builder.ingest.image import ingest_image
-from anki_builder.ingest.gdrive import ingest_gdrive_folder, GDRIVE_URL_PATTERN
 from anki_builder.enrich.ai import enrich_cards
+from anki_builder.export.apkg import export_apkg
+from anki_builder.ingest.excel import ingest_excel
+from anki_builder.ingest.gdrive import GDRIVE_URL_PATTERN, ingest_gdrive_folder
+from anki_builder.ingest.image import ingest_image
+from anki_builder.ingest.pdf import ingest_pdf
 from anki_builder.media.audio import generate_audio_batch
 from anki_builder.media.image import generate_image_batch
-from anki_builder.export.apkg import export_apkg
+from anki_builder.schema import Card
+from anki_builder.state import StateManager, finalize_card_status
 
 WORKSPACE_DIR = Path("workspace")
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp", ".heic", ".heif"}
@@ -107,7 +107,9 @@ def main():
 
 @main.command()
 @click.option("--input", "input_path", default=None, type=str, help="Input file, folder, or Google Drive URL")
-@click.option("--words", "words", default=None, type=str, help='Comma-separated words (e.g. "Glove,Squirrel,impossible")')
+@click.option(
+    "--words", "words", default=None, type=str, help='Comma-separated words (e.g. "Glove,Squirrel,impossible")'
+)
 @click.option("--lang-target", "target_language", required=True, help="Target language code (en, fr, zh)")
 @click.option("--lang-source", "source_language", default="de", help="Source language code (default: de)")
 @click.option("--deck", "deck_name", default=None, help="Deck name for export")
@@ -115,8 +117,17 @@ def main():
 @click.option("--no-audio", is_flag=True, help="Skip audio generation")
 @click.option("--typing", is_flag=True, help="Create 'type in the answer' cards")
 @click.option("--output", "output_dir", default=None, type=str, help="Output folder (default: new workspace/<uuid>)")
-def run(input_path: str | None, words: str | None, target_language: str, source_language: str,
-        deck_name: str | None, no_images: bool, no_audio: bool, typing: bool, output_dir: str | None):
+def run(
+    input_path: str | None,
+    words: str | None,
+    target_language: str,
+    source_language: str,
+    deck_name: str | None,
+    no_images: bool,
+    no_audio: bool,
+    typing: bool,
+    output_dir: str | None,
+):
     """Run full pipeline: ingest, enrich, media, review (export separately)."""
     if not input_path and not words:
         raise click.ClickException("Provide either --input or --words.")
@@ -135,12 +146,15 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
         cards = _words_to_cards(words, target_language, source_language, typing)
         click.echo(f"Step 1/4: Ingesting {len(cards)} words from command line...")
     else:
+        assert input_path is not None
         input_type = _detect_input_type(input_path)
         if input_type in ("image", "folder", "gdrive"):
             config.require_google_key()
         click.echo(f"Step 1/4: Ingesting {input_path}...")
         if input_type == "gdrive":
-            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.minimax_api_key, source_language)
+            cards = ingest_gdrive_folder(
+                input_path, target_language, config.google_api_key, config.minimax_api_key, source_language
+            )
         elif input_type == "excel":
             path = Path(input_path)
             cards = ingest_excel(path, target_language, source_language)
@@ -151,7 +165,9 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
             path = Path(input_path)
             cards = ingest_image(path, target_language, source_language, config.google_api_key)
         elif input_type == "folder":
-            cards = _ingest_folder(Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key)
+            cards = _ingest_folder(
+                Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key
+            )
 
     if typing:
         cards = [c.model_copy(update={"typing": True}) for c in cards]
@@ -178,7 +194,9 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
     if (need_audio or need_image) and not (no_audio and no_images):
         click.echo("Step 3/4: Generating media...")
         if not no_audio and config.audio_enabled and need_audio:
-            click.echo(f"  Generating audio for {len(need_audio)} cards ({len(enriched) - len(need_audio)} already done)...")
+            click.echo(
+                f"  Generating audio for {len(need_audio)} cards ({len(enriched) - len(need_audio)} already done)..."
+            )
             enriched = generate_audio_batch(enriched, state.media_dir)
             state.save_cards(enriched)
         elif not no_audio and config.audio_enabled:
@@ -187,10 +205,21 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
         if not no_images and config.image_enabled and need_image:
             image_api_key = config.google_api_key if config.image_provider == "gemini" else config.minimax_api_key
             fallback_key = config.minimax_api_key if config.image_provider == "gemini" else config.google_api_key
-            click.echo(f"  Generating images for {len(need_image)} cards ({len(enriched) - len(need_image)} already done) [{config.image_provider}]...")
-            enriched = asyncio.run(generate_image_batch(
-                enriched, state.media_dir, image_api_key, config.concurrency, config.image_provider, fallback_key,
-            ))
+            click.echo(
+                f"  Generating images for {len(need_image)} cards"
+                f" ({len(enriched) - len(need_image)} already done)"
+                f" [{config.image_provider}]..."
+            )
+            enriched = asyncio.run(
+                generate_image_batch(
+                    enriched,
+                    state.media_dir,
+                    image_api_key,
+                    config.concurrency,
+                    config.image_provider,
+                    fallback_key,
+                )
+            )
             state.save_cards(enriched)
         elif not no_images and config.image_enabled:
             click.echo(f"  Images: all {len(enriched)} cards already have images, skipping.")
@@ -203,22 +232,31 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
     state.save_cards(updated)
 
     # Review prompt
-    click.echo(f"\nStep 4/4: Review your cards and media.")
+    click.echo("\nStep 4/4: Review your cards and media.")
     click.echo(f"  Media folder: {state.media_dir.resolve()}")
     click.echo(f"  Cards: {len(updated)}")
-    click.echo(f"\nRun 'anki-builder review' to see card details.")
+    click.echo("\nRun 'anki-builder review' to see card details.")
     name = deck_name or config.default_deck_name
-    click.echo(f"When ready, run: anki-builder export --output \"{work_dir}\" --deck \"{name}\"")
+    click.echo(f'When ready, run: anki-builder export --output "{work_dir}" --deck "{name}"')
 
 
 @main.command()
 @click.option("--input", "input_path", default=None, type=str, help="Input file, folder, or Google Drive URL")
-@click.option("--words", "words", default=None, type=str, help="Comma-separated words (e.g. \"Glove,Squirrel,impossible\")")
+@click.option(
+    "--words", "words", default=None, type=str, help='Comma-separated words (e.g. "Glove,Squirrel,impossible")'
+)
 @click.option("--lang-target", "target_language", required=True, help="Target language code (en, fr, zh)")
 @click.option("--lang-source", "source_language", default="de", help="Source language code (default: de)")
 @click.option("--typing", is_flag=True, help="Create 'type in the answer' cards")
 @click.option("--output", "output_dir", default=None, type=str, help="Output folder (default: new workspace/<uuid>)")
-def ingest(input_path: str | None, words: str | None, target_language: str, source_language: str, typing: bool, output_dir: str | None):
+def ingest(
+    input_path: str | None,
+    words: str | None,
+    target_language: str,
+    source_language: str,
+    typing: bool,
+    output_dir: str | None,
+):
     """Step 1: Extract vocabulary from a file, folder, URL, or word list."""
     if not input_path and not words:
         raise click.ClickException("Provide either --input or --words.")
@@ -233,6 +271,7 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
         cards = _words_to_cards(words, target_language, source_language, typing)
         click.echo(f"Ingesting {len(cards)} words from command line...")
     else:
+        assert input_path is not None
         input_type = _detect_input_type(input_path)
 
         click.echo(f"Ingesting {input_path} as {input_type}...")
@@ -242,7 +281,9 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
             config.require_minimax_key()
 
         if input_type == "gdrive":
-            cards = ingest_gdrive_folder(input_path, target_language, config.google_api_key, config.minimax_api_key, source_language)
+            cards = ingest_gdrive_folder(
+                input_path, target_language, config.google_api_key, config.minimax_api_key, source_language
+            )
         elif input_type == "excel":
             path = Path(input_path)
             cards = ingest_excel(path, target_language, source_language)
@@ -253,7 +294,9 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
             path = Path(input_path)
             cards = ingest_image(path, target_language, source_language, config.google_api_key)
         elif input_type == "folder":
-            cards = _ingest_folder(Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key)
+            cards = _ingest_folder(
+                Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key
+            )
 
     if typing:
         cards = [c.model_copy(update={"typing": True}) for c in cards]
@@ -284,7 +327,7 @@ def enrich(output_dir: str):
     click.echo(f"Enriching {len(to_enrich)} of {len(cards)} cards ({len(cards) - len(to_enrich)} already done)...")
     enriched = enrich_cards(cards, config.minimax_api_key)
     state.save_cards(enriched)
-    click.echo(f"Enrichment complete.")
+    click.echo("Enrichment complete.")
 
 
 @main.command()
@@ -318,10 +361,21 @@ def media(no_images: bool, no_audio: bool, output_dir: str):
         if need_image:
             image_api_key = config.google_api_key if config.image_provider == "gemini" else config.minimax_api_key
             fallback_key = config.minimax_api_key if config.image_provider == "gemini" else config.google_api_key
-            click.echo(f"Generating images for {len(need_image)} cards ({len(cards) - len(need_image)} already done) [{config.image_provider}]...")
-            cards = asyncio.run(generate_image_batch(
-                cards, state.media_dir, image_api_key, config.concurrency, config.image_provider, fallback_key,
-            ))
+            click.echo(
+                f"Generating images for {len(need_image)} cards"
+                f" ({len(cards) - len(need_image)} already done)"
+                f" [{config.image_provider}]..."
+            )
+            cards = asyncio.run(
+                generate_image_batch(
+                    cards,
+                    state.media_dir,
+                    image_api_key,
+                    config.concurrency,
+                    config.image_provider,
+                    fallback_key,
+                )
+            )
             state.save_cards(cards)
         else:
             click.echo(f"Images: all {len(cards)} cards already have images, skipping.")
@@ -356,7 +410,7 @@ def review(output_dir: str):
         click.echo()
 
     click.echo(f"Review images and audio in: {state.media_dir.resolve()}")
-    click.echo("When ready, run: anki-builder export --deck \"Your Deck Name\"")
+    click.echo('When ready, run: anki-builder export --deck "Your Deck Name"')
 
 
 @main.command()
@@ -392,5 +446,3 @@ def clean(output_dir: str):
         click.echo(f"Removed {work_dir}/")
     else:
         click.echo("Nothing to clean.")
-
-

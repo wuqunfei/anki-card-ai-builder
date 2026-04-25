@@ -1,9 +1,9 @@
 import json
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+from anki_builder.enrich.ai import _batch_cards, _build_enrichment_prompt, enrich_cards
 from anki_builder.schema import Card
-from anki_builder.enrich.ai import enrich_cards, _build_enrichment_prompt, _batch_cards
 
 
 class TestAIEnrichment(unittest.TestCase):
@@ -42,15 +42,19 @@ class TestAIEnrichment(unittest.TestCase):
         mock_client = MagicMock()
         mock_anthropic_module.Anthropic.return_value = mock_client
 
-        enriched_data = json.dumps([{
-            "source_word": "dog",
-            "target_word": "Hund",
-            "target_pronunciation": "/dɒɡ/",
-            "target_example_sentence": "The dog loves to play in the park! 🐕",
-            "source_example_sentence": "Der Hund spielt gern im Park! 🐕",
-            "target_mnemonic": '<span style="color:red">dog</span>',
-            "target_part_of_speech": "noun",
-        }])
+        enriched_data = json.dumps(
+            [
+                {
+                    "source_word": "dog",
+                    "target_word": "Hund",
+                    "target_pronunciation": "/dɒɡ/",
+                    "target_example_sentence": "The dog loves to play in the park! 🐕",
+                    "source_example_sentence": "Der Hund spielt gern im Park! 🐕",
+                    "target_mnemonic": '<span style="color:red">dog</span>',
+                    "target_part_of_speech": "noun",
+                }
+            ]
+        )
 
         mock_response = MagicMock()
         mock_response.content = [MagicMock(text=enriched_data)]

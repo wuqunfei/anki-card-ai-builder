@@ -3,8 +3,8 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from anki_builder.schema import Card
 from anki_builder.export.apkg import export_apkg
+from anki_builder.schema import Card
 
 
 class TestApkgExport(unittest.TestCase):

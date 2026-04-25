@@ -1,9 +1,8 @@
 import json
-import tempfile
 import unittest
 import zipfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch
 
 import openpyxl
 from click.testing import CliRunner
@@ -29,20 +28,27 @@ class TestFullPipeline(unittest.TestCase):
         def fake_enrich(cards, api_key):
             enriched = []
             for c in cards:
-                enriched.append(c.model_copy(update={
-                    "target_pronunciation": "/test/",
-                    "target_example_sentence": "Test sentence! 🎉",
-                    "source_example_sentence": "Testsatz! 🎉",
-                    "target_mnemonic": '<span style="color:red">test</span>',
-                    "target_part_of_speech": "noun",
-                    "status": "enriched",
-                }))
+                enriched.append(
+                    c.model_copy(
+                        update={
+                            "target_pronunciation": "/test/",
+                            "target_example_sentence": "Test sentence! 🎉",
+                            "source_example_sentence": "Testsatz! 🎉",
+                            "target_mnemonic": '<span style="color:red">test</span>',
+                            "target_part_of_speech": "noun",
+                            "status": "enriched",
+                        }
+                    )
+                )
             return enriched
+
         mock_enrich.side_effect = fake_enrich
 
         mock_audio.side_effect = lambda cards, media_dir: cards
+
         async def fake_image(cards, media_dir, api_key, concurrency):
             return cards
+
         mock_image.side_effect = fake_image
 
         runner = CliRunner()

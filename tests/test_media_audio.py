@@ -1,10 +1,10 @@
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+from anki_builder.media.audio import generate_audio_batch, generate_audio_for_card
 from anki_builder.schema import Card
-from anki_builder.media.audio import generate_audio_for_card, generate_audio_batch
 
 
 class TestAudioGeneration(unittest.TestCase):
@@ -15,6 +15,7 @@ class TestAudioGeneration(unittest.TestCase):
 
         def fake_save(path):
             Path(path).write_bytes(b"fake-mp3")
+
         mock_tts.save.side_effect = fake_save
 
         tmpdir = tempfile.mkdtemp()
@@ -49,6 +50,7 @@ class TestAudioGeneration(unittest.TestCase):
 
         def fake_save(path):
             Path(path).write_bytes(b"fake-mp3")
+
         mock_tts.save.side_effect = fake_save
 
         tmpdir = tempfile.mkdtemp()

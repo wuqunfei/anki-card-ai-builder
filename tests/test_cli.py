@@ -1,7 +1,6 @@
-import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import openpyxl
 from click.testing import CliRunner
@@ -28,7 +27,9 @@ class TestCLI(unittest.TestCase):
         runner = CliRunner()
         with runner.isolated_filesystem():
             self._create_xlsx(Path("vocab.xlsx"))
-            result = runner.invoke(main, ["ingest", "--input", "vocab.xlsx", "--lang-target", "en", "--output", "myout"])
+            result = runner.invoke(
+                main, ["ingest", "--input", "vocab.xlsx", "--lang-target", "en", "--output", "myout"]
+            )
             self.assertEqual(result.exit_code, 0, msg=result.output)
             self.assertTrue(Path("myout/cards.json").exists())
 
@@ -52,7 +53,8 @@ class TestCLI(unittest.TestCase):
             Path("myout").mkdir()
             Path("myout/cards.json").write_text("[]")
             result = runner.invoke(
-                main, ["enrich", "--output", "myout"],
+                main,
+                ["enrich", "--output", "myout"],
                 env={"MINIMAX_API_KEY": "test-key"},
             )
             self.assertEqual(result.exit_code, 0, msg=result.output)
@@ -70,11 +72,12 @@ class TestCLI(unittest.TestCase):
         runner = CliRunner()
         with runner.isolated_filesystem():
             self._create_xlsx(Path("vocab.xlsx"))
-            result = runner.invoke(main, [
-                "ingest", "--input", "vocab.xlsx", "--lang-target", "en", "--typing", "--output", "myout"
-            ])
+            result = runner.invoke(
+                main, ["ingest", "--input", "vocab.xlsx", "--lang-target", "en", "--typing", "--output", "myout"]
+            )
             self.assertEqual(result.exit_code, 0, msg=result.output)
             import json
+
             cards_data = json.loads(Path("myout/cards.json").read_text())
             self.assertTrue(all(c["typing"] for c in cards_data))
 
@@ -82,11 +85,12 @@ class TestCLI(unittest.TestCase):
         runner = CliRunner()
         with runner.isolated_filesystem():
             self._create_xlsx(Path("vocab.xlsx"))
-            result = runner.invoke(main, [
-                "ingest", "--input", "vocab.xlsx", "--lang-target", "en", "--output", "myout"
-            ])
+            result = runner.invoke(
+                main, ["ingest", "--input", "vocab.xlsx", "--lang-target", "en", "--output", "myout"]
+            )
             self.assertEqual(result.exit_code, 0, msg=result.output)
             import json
+
             cards_data = json.loads(Path("myout/cards.json").read_text())
             self.assertFalse(any(c["typing"] for c in cards_data))
 

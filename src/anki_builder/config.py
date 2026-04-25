@@ -26,15 +26,13 @@ class Config:
     def require_minimax_key(self) -> None:
         if not self.minimax_api_key:
             raise click.ClickException(
-                "MINIMAX_API_KEY is required but not set. "
-                "Add it to your .env file or set the environment variable."
+                "MINIMAX_API_KEY is required but not set. Add it to your .env file or set the environment variable."
             )
 
     def require_google_key(self) -> None:
         if not self.google_api_key:
             raise click.ClickException(
-                "GOOGLE_API_KEY is required but not set. "
-                "Add it to your .env file or set the environment variable."
+                "GOOGLE_API_KEY is required but not set. Add it to your .env file or set the environment variable."
             )
 
 

@@ -45,10 +45,12 @@ def extract_vocabulary_with_ai(
     response = client.messages.create(
         model=MINIMAX_MODEL,
         max_tokens=16384,
-        messages=[{
-            "role": "user",
-            "content": _build_text_prompt(text, target_language, source_language),
-        }],
+        messages=[
+            {
+                "role": "user",
+                "content": _build_text_prompt(text, target_language, source_language),
+            }
+        ],
         temperature=0.1,
     )
     content = ""

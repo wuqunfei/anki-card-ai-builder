@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pymupdf
 
-from anki_builder.ingest.pdf import ingest_pdf, extract_text_from_pdf
+from anki_builder.ingest.pdf import extract_text_from_pdf, ingest_pdf
 
 
 class TestPdfTextExtraction(unittest.TestCase):

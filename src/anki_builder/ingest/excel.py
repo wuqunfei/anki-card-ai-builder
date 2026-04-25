@@ -24,9 +24,14 @@ HEADER_ALIASES: dict[str, str] = {
 }
 
 CARD_FIELDS = {
-    "source_word", "target_word", "target_pronunciation",
-    "target_example_sentence", "source_example_sentence",
-    "target_mnemonic", "target_part_of_speech", "tags",
+    "source_word",
+    "target_word",
+    "target_pronunciation",
+    "target_example_sentence",
+    "source_example_sentence",
+    "target_mnemonic",
+    "target_part_of_speech",
+    "tags",
 }
 
 

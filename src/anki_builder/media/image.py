@@ -47,6 +47,7 @@ def _skip_if_exists(card: Card, image_path: Path) -> Card | None:
 
 # --- MiniMax provider ---
 
+
 async def _generate_minimax(
     card: Card,
     media_dir: Path,
@@ -82,13 +83,15 @@ async def _generate_minimax(
                 image_bytes = base64.b64decode(image_list[0])
                 image_path.write_bytes(image_bytes)
                 return card.model_copy(update={"image_file": str(image_path)})
-            click.echo(f"  [{card.source_word}] attempt {attempt+1}/{MAX_RETRIES}: empty response — {data}")
+            click.echo(f"  [{card.source_word}] attempt {attempt + 1}/{MAX_RETRIES}: empty response — {data}")
         except httpx.TimeoutException:
-            click.echo(f"  [{card.source_word}] attempt {attempt+1}/{MAX_RETRIES}: timeout (120s)")
+            click.echo(f"  [{card.source_word}] attempt {attempt + 1}/{MAX_RETRIES}: timeout (120s)")
         except httpx.HTTPStatusError as e:
-            click.echo(f"  [{card.source_word}] attempt {attempt+1}/{MAX_RETRIES}: HTTP {e.response.status_code} — {e.response.text[:200]}")
+            click.echo(
+                f"  [{card.source_word}] attempt {attempt + 1}/{MAX_RETRIES}: HTTP {e.response.status_code} — {e.response.text[:200]}"  # noqa: E501
+            )
         except Exception as e:
-            click.echo(f"  [{card.source_word}] attempt {attempt+1}/{MAX_RETRIES}: {type(e).__name__}: {e}")
+            click.echo(f"  [{card.source_word}] attempt {attempt + 1}/{MAX_RETRIES}: {type(e).__name__}: {e}")
         if attempt < MAX_RETRIES - 1:
             await asyncio.sleep(3)
 
@@ -97,6 +100,7 @@ async def _generate_minimax(
 
 
 # --- Google Gemini provider ---
+
 
 async def _generate_gemini(
     card: Card,
@@ -133,9 +137,9 @@ async def _generate_gemini(
                     if part.inline_data and part.inline_data.data:
                         image_path.write_bytes(part.inline_data.data)
                         return card.model_copy(update={"image_file": str(image_path)})
-            click.echo(f"  [{card.source_word}] attempt {attempt+1}/{MAX_RETRIES}: no image in response")
+            click.echo(f"  [{card.source_word}] attempt {attempt + 1}/{MAX_RETRIES}: no image in response")
         except Exception as e:
-            click.echo(f"  [{card.source_word}] attempt {attempt+1}/{MAX_RETRIES}: {type(e).__name__}: {e}")
+            click.echo(f"  [{card.source_word}] attempt {attempt + 1}/{MAX_RETRIES}: {type(e).__name__}: {e}")
         if attempt < MAX_RETRIES - 1:
             await asyncio.sleep(3)
 

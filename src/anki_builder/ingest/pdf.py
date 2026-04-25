@@ -3,14 +3,14 @@ from pathlib import Path
 import click
 import pymupdf
 
-from anki_builder.schema import Card
 from anki_builder.enrich.vocabulary import extract_vocabulary_with_ai
+from anki_builder.schema import Card
 
 
 def extract_text_from_pdf(path: Path) -> str:
     doc = pymupdf.open(str(path))
     text_parts = []
-    for page in doc:
+    for page in doc:  # type: ignore[attr-defined]
         text_parts.append(page.get_text())
     doc.close()
     return "\n".join(text_parts).strip()

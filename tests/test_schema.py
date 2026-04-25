@@ -1,4 +1,5 @@
 import unittest
+
 from anki_builder.schema import Card
 
 
@@ -28,6 +29,7 @@ class TestCard(unittest.TestCase):
 
     def test_card_id_is_uuid(self):
         import uuid
+
         card = Card(source_word="test", source_language="de", target_language="en")
         uuid.UUID(card.id)
 

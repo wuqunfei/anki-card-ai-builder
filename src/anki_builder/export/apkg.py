@@ -27,11 +27,11 @@ _SHARED_FIELDS = [
 
 _SHARED_AFMT_BODY = (
     # --- Answer word (hero) ---
-    '<div style="text-align:center; font-size:24px; font-weight:bold; color:#2980b9; margin:8px 0 2px;">{{TargetWord}}</div>'
+    '<div style="text-align:center; font-size:24px; font-weight:bold; color:#2980b9; margin:8px 0 2px;">{{TargetWord}}</div>'  # noqa: E501
     '<div style="text-align:center; margin-bottom:10px;">'
     '<span style="font-size:14px; color:#7f8c8d;">{{TargetPronunciation}}</span>'
     ' <span style="font-size:12px; color:#999;">{{TargetPartOfSpeech}}</span>'
-    '</div>'
+    "</div>"
     # --- Etymology block (each field independent, shared border style) ---
     '{{#TargetMnemonic}}<div style="text-align:left; margin:4px auto 0; padding:4px 10px; max-width:320px; '
     'border-left:3px solid #ddd; font-size:13px; line-height:1.6;">{{TargetMnemonic}}</div>{{/TargetMnemonic}}'
@@ -42,57 +42,61 @@ _SHARED_AFMT_BODY = (
     # --- Examples (clear separation) ---
     '<div style="text-align:center; font-size:15px; margin:12px 0 4px; color:#4a90d9;">{{TargetExampleSentence}}</div>'
     '<div style="text-align:center; font-size:13px; color:#7ea87e;">{{SourceExampleSentence}}</div>'
-    '{{#ExampleAudio}}'
+    "{{#ExampleAudio}}"
     '<div style="text-align:center; margin:4px 0;">{{ExampleAudio}}</div>'
-    '{{/ExampleAudio}}'
+    "{{/ExampleAudio}}"
 )
 
 BASIC_MODEL = genanki.Model(
     BASIC_MODEL_ID,
     "Anki Builder Basic",
     fields=_SHARED_FIELDS,
-    templates=[{
-        "name": "Basic",
-        "qfmt": (
-            '<div style="text-align:center; font-size:28px; font-weight:bold; margin:20px; color:#2c3e50;">'
-            "{{TargetWord}}"
-            "</div>"
-            '<div style="text-align:center; font-size:16px; color:#7f8c8d; margin-bottom:8px;">'
-            "{{TargetPronunciation}}"
-            "</div>"
-            '<div style="text-align:center; font-size:13px; color:#999; margin-bottom:12px;">'
-            "{{TargetPartOfSpeech}}"
-            "</div>"
-            '<div style="text-align:center; margin:10px;">{{Image}}</div>'
-            '<div style="text-align:center;">{{Audio}}</div>'
-        ),
-        "afmt": '{{FrontSide}}<hr id="answer">' + _SHARED_AFMT_BODY,
-    }],
+    templates=[
+        {
+            "name": "Basic",
+            "qfmt": (
+                '<div style="text-align:center; font-size:28px; font-weight:bold; margin:20px; color:#2c3e50;">'
+                "{{TargetWord}}"
+                "</div>"
+                '<div style="text-align:center; font-size:16px; color:#7f8c8d; margin-bottom:8px;">'
+                "{{TargetPronunciation}}"
+                "</div>"
+                '<div style="text-align:center; font-size:13px; color:#999; margin-bottom:12px;">'
+                "{{TargetPartOfSpeech}}"
+                "</div>"
+                '<div style="text-align:center; margin:10px;">{{Image}}</div>'
+                '<div style="text-align:center;">{{Audio}}</div>'
+            ),
+            "afmt": '{{FrontSide}}<hr id="answer">' + _SHARED_AFMT_BODY,
+        }
+    ],
 )
 
 TYPING_MODEL = genanki.Model(
     TYPING_MODEL_ID,
     "Anki Builder Type-in",
     fields=_SHARED_FIELDS,
-    templates=[{
-        "name": "Type-in",
-        "qfmt": (
-            '<div style="text-align:center; font-size:26px; font-weight:bold; margin:10px 0 6px; color:#2c3e50;">'
-            "{{SourceWord}}"
-            "</div>"
-            '<div style="text-align:center; margin:6px 0;">{{Image}}</div>'
-            '<div style="text-align:center; margin:4px 0;">{{Audio}}</div>'
-            '<div style="text-align:center; margin:10px 0;">{{type:TargetWordPlain}}</div>'
-        ),
-        "afmt": '{{FrontSide}}<hr id="answer" style="margin:8px 0;">' + _SHARED_AFMT_BODY,
-    }],
+    templates=[
+        {
+            "name": "Type-in",
+            "qfmt": (
+                '<div style="text-align:center; font-size:26px; font-weight:bold; margin:10px 0 6px; color:#2c3e50;">'
+                "{{SourceWord}}"
+                "</div>"
+                '<div style="text-align:center; margin:6px 0;">{{Image}}</div>'
+                '<div style="text-align:center; margin:4px 0;">{{Audio}}</div>'
+                '<div style="text-align:center; margin:10px 0;">{{type:TargetWordPlain}}</div>'
+            ),
+            "afmt": '{{FrontSide}}<hr id="answer" style="margin:8px 0;">' + _SHARED_AFMT_BODY,
+        }
+    ],
 )
 
 
 GENDER_STYLE = {
     "m": ("m.", "#5b9bd5"),  # soft blue
     "f": ("f.", "#e07b7b"),  # soft red
-    "n": ("n.", "#555"),     # soft black
+    "n": ("n.", "#555"),  # soft black
 }
 
 
