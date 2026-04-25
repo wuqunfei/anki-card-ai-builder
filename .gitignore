@@ -7,3 +7,5 @@ output/
 *.egg-info/
 dist/
 .idea/
+workspace/*
+!workspace/.gitkeep
