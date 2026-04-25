@@ -74,7 +74,7 @@ async def generate_image_for_card(
             image_path.write_bytes(image_bytes)
             return card.model_copy(update={"image_file": str(image_path)})
         if attempt < MAX_RETRIES - 1:
-            await asyncio.sleep(2 ** attempt)
+            await asyncio.sleep(3)
 
     click.echo(f"Warning: image generation failed for '{card.source_word}', skipping.")
     return card
@@ -84,7 +84,7 @@ async def generate_image_batch(
     cards: list[Card],
     media_dir: Path,
     api_key: str,
-    concurrency: int = 5,
+    concurrency: int = 3,
 ) -> list[Card]:
     semaphore = asyncio.Semaphore(concurrency)
 
