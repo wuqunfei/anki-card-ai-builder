@@ -253,10 +253,13 @@ Working MVP — usable but still evolving.
 
 ```bash
 # Install dev dependencies
-uv sync --group dev
+make install
 
-# Run tests
-uv run pytest
+# Format code
+make fmt
+
+# Run all checks (lint + typecheck + test)
+make check
 ```
 
 Issues and pull requests are welcome.
