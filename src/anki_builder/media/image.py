@@ -8,13 +8,32 @@ import httpx
 from anki_builder.constants import MAX_RETRIES, MINIMAX_IMAGE_MODEL, MINIMAX_IMAGE_URL
 from anki_builder.schema import Card
 
+LANG_NAMES = {
+    "en": "English",
+    "fr": "French",
+    "zh": "Chinese",
+    "de": "German",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "es": "Spanish",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "ru": "Russian",
+    "ar": "Arabic",
+}
+
+
+def _lang_full_name(code: str) -> str:
+    return LANG_NAMES.get(code, code)
+
 
 def _build_image_prompt(word: str, target_language: str) -> str:
+    lang = _lang_full_name(target_language)
     return (
-        f"A single cute, cartoon illustration of: {word}. "
+        f"A single cute, cartoon illustration of the {lang} word '{word}'. "
+        f"The word means a concept in {lang} — illustrate that concept visually. "
         f"Kid-friendly, colorful, clean background. "
-        f"The image must contain ZERO text, ZERO letters, ZERO words, ZERO labels, ZERO captions. "
-        f"No speech bubbles. No writing of any kind. Only a drawing."
+        f"Pure illustration only — no text, letters, labels, captions, or speech bubbles."
     )
 
 
