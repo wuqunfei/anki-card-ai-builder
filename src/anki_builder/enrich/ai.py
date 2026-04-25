@@ -3,8 +3,10 @@ import re
 import unicodedata
 
 import anthropic
+from google import genai
+from google.genai import types
 
-from anki_builder.constants import MINIMAX_BASE_URL, MINIMAX_MODEL
+from anki_builder.constants import GEMINI_ENRICH_MODEL, MINIMAX_BASE_URL, MINIMAX_MODEL
 from anki_builder.schema import Card
 
 
@@ -85,9 +87,50 @@ def _parse_enrichment_response(text: str) -> list[dict]:
         return []
 
 
+def _enrich_minimax(batch: list[Card], api_key: str) -> list[dict]:
+    client = anthropic.Anthropic(
+        api_key=api_key,
+        base_url=MINIMAX_BASE_URL,
+    )
+    prompt = _build_enrichment_prompt(batch)
+    response = client.messages.create(
+        model=MINIMAX_MODEL,
+        max_tokens=16384,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.3,
+    )
+    content = ""
+    for block in response.content:
+        if hasattr(block, "text"):
+            content = block.text
+            break
+    return _parse_enrichment_response(content)
+
+
+def _enrich_gemini(batch: list[Card], api_key: str) -> list[dict]:
+    client = genai.Client(api_key=api_key)
+    prompt = _build_enrichment_prompt(batch)
+    response = client.models.generate_content(
+        model=GEMINI_ENRICH_MODEL,
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            max_output_tokens=16384,
+            temperature=0.3,
+        ),
+    )
+    return _parse_enrichment_response(response.text or "")
+
+
+PROVIDERS = {
+    "minimax": _enrich_minimax,
+    "gemini": _enrich_gemini,
+}
+
+
 def enrich_cards(
     cards: list[Card],
-    minimax_api_key: str,
+    api_key: str,
+    provider: str = "minimax",
 ) -> list[Card]:
     to_enrich = [c for c in cards if c.status == "extracted"]
     already_done = [c for c in cards if c.status != "extracted"]
@@ -95,26 +138,11 @@ def enrich_cards(
     if not to_enrich:
         return cards
 
-    client = anthropic.Anthropic(
-        api_key=minimax_api_key,
-        base_url=MINIMAX_BASE_URL,
-    )
+    enrich_fn = PROVIDERS.get(provider, _enrich_minimax)
 
     enriched: list[Card] = []
     for batch in _batch_cards(to_enrich):
-        prompt = _build_enrichment_prompt(batch)
-        response = client.messages.create(
-            model=MINIMAX_MODEL,
-            max_tokens=16384,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-        )
-        content = ""
-        for block in response.content:
-            if hasattr(block, "text"):
-                content = block.text
-                break
-        items = _parse_enrichment_response(content)
+        items = enrich_fn(batch, api_key)
 
         # Build lookup maps: exact match first, then normalized fallback
         item_map = {item["source_word"]: item for item in items if "source_word" in item}
