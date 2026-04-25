@@ -13,6 +13,7 @@ class Config:
         self.image_enabled = os.environ.get("MEDIA_IMAGE_ENABLED", "true").lower() == "true"
         self.concurrency = int(os.environ.get("MEDIA_CONCURRENCY", "3"))
         self.image_provider = os.environ.get("IMAGE_PROVIDER", "minimax")  # "minimax" or "gemini"
+        self.enrich_provider = os.environ.get("ENRICH_PROVIDER", "minimax")  # "minimax" or "gemini"
         self.default_deck_name = os.environ.get("EXPORT_DECK_NAME", "Vocabulary")
 
     @property
