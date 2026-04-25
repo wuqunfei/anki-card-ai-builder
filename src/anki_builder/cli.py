@@ -180,7 +180,12 @@ def run(
     to_enrich = [c for c in merged if c.status == "extracted"]
     if to_enrich:
         click.echo(f"Step 2/4: Enriching {len(to_enrich)} of {len(merged)} cards with AI...")
-        enriched = enrich_cards(merged, config.minimax_api_key)
+        if config.enrich_provider == "gemini":
+            config.require_google_key()
+        else:
+            config.require_minimax_key()
+        enrich_key = config.google_api_key if config.enrich_provider == "gemini" else config.minimax_api_key
+        enriched = enrich_cards(merged, api_key=enrich_key, provider=config.enrich_provider)
         state.save_cards(enriched)
         click.echo("  Enrichment complete.")
     else:
@@ -311,7 +316,6 @@ def ingest(
 def enrich(output_dir: str):
     """Step 2: Fill missing card fields (translation, pronunciation, examples) using AI."""
     config = load_config()
-    config.require_minimax_key()
     state = StateManager(Path(output_dir))
 
     cards = state.load_cards()
@@ -325,7 +329,12 @@ def enrich(output_dir: str):
         return
 
     click.echo(f"Enriching {len(to_enrich)} of {len(cards)} cards ({len(cards) - len(to_enrich)} already done)...")
-    enriched = enrich_cards(cards, config.minimax_api_key)
+    if config.enrich_provider == "gemini":
+        config.require_google_key()
+    else:
+        config.require_minimax_key()
+    enrich_key = config.google_api_key if config.enrich_provider == "gemini" else config.minimax_api_key
+    enriched = enrich_cards(cards, api_key=enrich_key, provider=config.enrich_provider)
     state.save_cards(enriched)
     click.echo("Enrichment complete.")
 

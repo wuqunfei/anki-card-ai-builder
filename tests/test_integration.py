@@ -26,7 +26,7 @@ class TestFullPipeline(unittest.TestCase):
     @patch("anki_builder.cli.generate_audio_batch")
     @patch("anki_builder.cli.enrich_cards")
     def test_full_run_command(self, mock_enrich, mock_audio, mock_image):
-        def fake_enrich(cards, api_key):
+        def fake_enrich(cards, api_key, provider="minimax"):
             enriched = []
             for c in cards:
                 enriched.append(
