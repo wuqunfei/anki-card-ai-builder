@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 from pathlib import Path
 
 import click
@@ -15,8 +16,20 @@ from anki_builder.media.audio import generate_audio_batch
 from anki_builder.media.image import generate_image_batch
 from anki_builder.export.apkg import export_apkg
 
-WORK_DIR = Path("output")
+WORKSPACE_DIR = Path("workspace")
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp", ".heic", ".heif"}
+
+
+def _resolve_work_dir(output: str | None) -> Path:
+    """Resolve the output folder. If given, use it; otherwise create a new UUID folder under workspace/."""
+    if output:
+        return Path(output)
+    folder_id = uuid.uuid4().hex[:8]
+    work_dir = WORKSPACE_DIR / folder_id
+    work_dir.mkdir(parents=True, exist_ok=True)
+    click.echo(f"Created new workspace: {work_dir}")
+    click.echo(f"Use --output {work_dir} to continue with this workspace.")
+    return work_dir
 
 
 def _words_to_cards(words_str: str, target_language: str, source_language: str, typing: bool = False) -> list[Card]:
@@ -101,8 +114,9 @@ def main():
 @click.option("--no-images", is_flag=True, help="Skip image generation")
 @click.option("--no-audio", is_flag=True, help="Skip audio generation")
 @click.option("--typing", is_flag=True, help="Create 'type in the answer' cards")
+@click.option("--output", "output_dir", default=None, type=str, help="Output folder (default: new workspace/<uuid>)")
 def run(input_path: str | None, words: str | None, target_language: str, source_language: str,
-        deck_name: str | None, no_images: bool, no_audio: bool, typing: bool):
+        deck_name: str | None, no_images: bool, no_audio: bool, typing: bool, output_dir: str | None):
     """Run full pipeline: ingest, enrich, media, review (export separately)."""
     if not input_path and not words:
         raise click.ClickException("Provide either --input or --words.")
@@ -110,7 +124,8 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
         raise click.ClickException("Use either --input or --words, not both.")
 
     config = load_config()
-    state = StateManager(WORK_DIR)
+    work_dir = _resolve_work_dir(output_dir)
+    state = StateManager(work_dir)
 
     # Validate API keys
     config.require_minimax_key()
@@ -165,6 +180,7 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
         if not no_audio and config.audio_enabled and need_audio:
             click.echo(f"  Generating audio for {len(need_audio)} cards ({len(enriched) - len(need_audio)} already done)...")
             enriched = generate_audio_batch(enriched, state.media_dir)
+            state.save_cards(enriched)
         elif not no_audio and config.audio_enabled:
             click.echo(f"  Audio: all {len(enriched)} cards already have audio, skipping.")
 
@@ -175,6 +191,7 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
             enriched = asyncio.run(generate_image_batch(
                 enriched, state.media_dir, image_api_key, config.concurrency, config.image_provider, fallback_key,
             ))
+            state.save_cards(enriched)
         elif not no_images and config.image_enabled:
             click.echo(f"  Images: all {len(enriched)} cards already have images, skipping.")
 
@@ -191,7 +208,7 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
     click.echo(f"  Cards: {len(updated)}")
     click.echo(f"\nRun 'anki-builder review' to see card details.")
     name = deck_name or config.default_deck_name
-    click.echo(f"When ready, run: anki-builder export --deck \"{name}\"")
+    click.echo(f"When ready, run: anki-builder export --output \"{work_dir}\" --deck \"{name}\"")
 
 
 @main.command()
@@ -200,7 +217,8 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
 @click.option("--lang-target", "target_language", required=True, help="Target language code (en, fr, zh)")
 @click.option("--lang-source", "source_language", default="de", help="Source language code (default: de)")
 @click.option("--typing", is_flag=True, help="Create 'type in the answer' cards")
-def ingest(input_path: str | None, words: str | None, target_language: str, source_language: str, typing: bool):
+@click.option("--output", "output_dir", default=None, type=str, help="Output folder (default: new workspace/<uuid>)")
+def ingest(input_path: str | None, words: str | None, target_language: str, source_language: str, typing: bool, output_dir: str | None):
     """Step 1: Extract vocabulary from a file, folder, URL, or word list."""
     if not input_path and not words:
         raise click.ClickException("Provide either --input or --words.")
@@ -208,7 +226,8 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
         raise click.ClickException("Use either --input or --words, not both.")
 
     config = load_config()
-    state = StateManager(WORK_DIR)
+    work_dir = _resolve_work_dir(output_dir)
+    state = StateManager(work_dir)
 
     if words:
         cards = _words_to_cards(words, target_language, source_language, typing)
@@ -245,11 +264,12 @@ def ingest(input_path: str | None, words: str | None, target_language: str, sour
 
 
 @main.command()
-def enrich():
+@click.option("--output", "output_dir", required=True, type=str, help="Output folder (e.g. workspace/<uuid>)")
+def enrich(output_dir: str):
     """Step 2: Fill missing card fields (translation, pronunciation, examples) using AI."""
     config = load_config()
     config.require_minimax_key()
-    state = StateManager(WORK_DIR)
+    state = StateManager(Path(output_dir))
 
     cards = state.load_cards()
     if not cards:
@@ -270,12 +290,13 @@ def enrich():
 @main.command()
 @click.option("--no-images", is_flag=True, help="Skip image generation")
 @click.option("--no-audio", is_flag=True, help="Skip audio generation")
-def media(no_images: bool, no_audio: bool):
+@click.option("--output", "output_dir", required=True, type=str, help="Output folder (e.g. workspace/<uuid>)")
+def media(no_images: bool, no_audio: bool, output_dir: str):
     """Step 3: Generate TTS audio and AI images for cards."""
     config = load_config()
     if not no_images and config.image_enabled:
         config.require_minimax_key()
-    state = StateManager(WORK_DIR)
+    state = StateManager(Path(output_dir))
     cards = state.load_cards()
 
     if not cards:
@@ -289,6 +310,7 @@ def media(no_images: bool, no_audio: bool):
         if need_audio:
             click.echo(f"Generating audio for {len(need_audio)} cards ({len(cards) - len(need_audio)} already done)...")
             cards = generate_audio_batch(cards, state.media_dir)
+            state.save_cards(cards)
         else:
             click.echo(f"Audio: all {len(cards)} cards already have audio, skipping.")
 
@@ -300,6 +322,7 @@ def media(no_images: bool, no_audio: bool):
             cards = asyncio.run(generate_image_batch(
                 cards, state.media_dir, image_api_key, config.concurrency, config.image_provider, fallback_key,
             ))
+            state.save_cards(cards)
         else:
             click.echo(f"Images: all {len(cards)} cards already have images, skipping.")
 
@@ -309,9 +332,10 @@ def media(no_images: bool, no_audio: bool):
 
 
 @main.command()
-def review():
+@click.option("--output", "output_dir", required=True, type=str, help="Output folder (e.g. workspace/<uuid>)")
+def review(output_dir: str):
     """Step 4: Show all cards and media status for review before export."""
-    state = StateManager(WORK_DIR)
+    state = StateManager(Path(output_dir))
     cards = state.load_cards()
 
     if not cards:
@@ -337,16 +361,18 @@ def review():
 
 @main.command()
 @click.option("--deck", "deck_name", default=None, help="Deck name (default: Vocabulary)")
-@click.option("--output", "output_path", default=None, help="Output .apkg file path")
+@click.option("--output", "output_dir", required=True, type=str, help="Output folder (e.g. workspace/<uuid>)")
+@click.option("--apkg", "apkg_path", default=None, help="Custom .apkg file path")
 @click.option("--prune", is_flag=True, help="Remove cards not in current source")
-def export(deck_name: str | None, output_path: str | None, prune: bool):
+def export(deck_name: str | None, output_dir: str, apkg_path: str | None, prune: bool):
     """Step 5: Export cards with media to an Anki .apkg file."""
     config = load_config()
-    state = StateManager(WORK_DIR)
+    work_dir = Path(output_dir)
+    state = StateManager(work_dir)
     cards = state.load_cards()
 
     name = deck_name or config.default_deck_name
-    out = Path(output_path) if output_path else WORK_DIR / f"{name}.apkg"
+    out = Path(apkg_path) if apkg_path else work_dir / f"{name}.apkg"
 
     click.echo(f"Exporting {len(cards)} cards to {out}...")
     export_apkg(cards, out, name)
@@ -354,14 +380,16 @@ def export(deck_name: str | None, output_path: str | None, prune: bool):
 
 
 @main.command()
-@click.confirmation_option(prompt="This will delete all cards, media, and exported files in output/. Continue?")
-def clean():
-    """Remove the output/ folder (cards, media, .apkg) to start fresh."""
+@click.option("--output", "output_dir", required=True, type=str, help="Output folder to clean (e.g. workspace/<uuid>)")
+@click.confirmation_option(prompt="This will delete all cards, media, and exported files in this folder. Continue?")
+def clean(output_dir: str):
+    """Remove an output folder (cards, media, .apkg) to start fresh."""
     import shutil
 
-    if WORK_DIR.exists():
-        shutil.rmtree(WORK_DIR)
-        click.echo(f"Removed {WORK_DIR}/")
+    work_dir = Path(output_dir)
+    if work_dir.exists():
+        shutil.rmtree(work_dir)
+        click.echo(f"Removed {work_dir}/")
     else:
         click.echo("Nothing to clean.")
 

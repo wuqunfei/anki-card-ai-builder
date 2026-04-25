@@ -28,19 +28,31 @@ class TestCLI(unittest.TestCase):
         runner = CliRunner()
         with runner.isolated_filesystem():
             self._create_xlsx(Path("vocab.xlsx"))
+            result = runner.invoke(main, ["ingest", "--input", "vocab.xlsx", "--lang-target", "en", "--output", "myout"])
+            self.assertEqual(result.exit_code, 0, msg=result.output)
+            self.assertTrue(Path("myout/cards.json").exists())
+
+    def test_ingest_creates_workspace_uuid_folder(self):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            Path("workspace").mkdir()
+            self._create_xlsx(Path("vocab.xlsx"))
             result = runner.invoke(main, ["ingest", "--input", "vocab.xlsx", "--lang-target", "en"])
             self.assertEqual(result.exit_code, 0, msg=result.output)
-            self.assertTrue(Path("output/cards.json").exists())
+            # Should have created a folder under workspace/
+            workspace_dirs = list(Path("workspace").iterdir())
+            self.assertEqual(len(workspace_dirs), 1)
+            self.assertTrue((workspace_dirs[0] / "cards.json").exists())
 
     @patch("anki_builder.cli.enrich_cards")
     def test_enrich_command(self, mock_enrich):
         mock_enrich.return_value = []
         runner = CliRunner()
         with runner.isolated_filesystem():
-            Path("output").mkdir()
-            Path("output/cards.json").write_text("[]")
+            Path("myout").mkdir()
+            Path("myout/cards.json").write_text("[]")
             result = runner.invoke(
-                main, ["enrich"],
+                main, ["enrich", "--output", "myout"],
                 env={"MINIMAX_API_KEY": "test-key"},
             )
             self.assertEqual(result.exit_code, 0, msg=result.output)
@@ -48,23 +60,22 @@ class TestCLI(unittest.TestCase):
     def test_export_command(self):
         runner = CliRunner()
         with runner.isolated_filesystem():
-            Path("output").mkdir()
-            Path("output/cards.json").write_text("[]")
-            result = runner.invoke(main, ["export", "--deck", "Test"])
+            Path("myout").mkdir()
+            Path("myout/cards.json").write_text("[]")
+            result = runner.invoke(main, ["export", "--output", "myout", "--deck", "Test"])
             self.assertEqual(result.exit_code, 0, msg=result.output)
-            self.assertTrue(Path("output/Test.apkg").exists())
-
+            self.assertTrue(Path("myout/Test.apkg").exists())
 
     def test_ingest_with_typing_flag(self):
         runner = CliRunner()
         with runner.isolated_filesystem():
             self._create_xlsx(Path("vocab.xlsx"))
             result = runner.invoke(main, [
-                "ingest", "--input", "vocab.xlsx", "--lang-target", "en", "--typing"
+                "ingest", "--input", "vocab.xlsx", "--lang-target", "en", "--typing", "--output", "myout"
             ])
             self.assertEqual(result.exit_code, 0, msg=result.output)
             import json
-            cards_data = json.loads(Path("output/cards.json").read_text())
+            cards_data = json.loads(Path("myout/cards.json").read_text())
             self.assertTrue(all(c["typing"] for c in cards_data))
 
     def test_ingest_without_typing_flag(self):
@@ -72,11 +83,11 @@ class TestCLI(unittest.TestCase):
         with runner.isolated_filesystem():
             self._create_xlsx(Path("vocab.xlsx"))
             result = runner.invoke(main, [
-                "ingest", "--input", "vocab.xlsx", "--lang-target", "en"
+                "ingest", "--input", "vocab.xlsx", "--lang-target", "en", "--output", "myout"
             ])
             self.assertEqual(result.exit_code, 0, msg=result.output)
             import json
-            cards_data = json.loads(Path("output/cards.json").read_text())
+            cards_data = json.loads(Path("myout/cards.json").read_text())
             self.assertFalse(any(c["typing"] for c in cards_data))
 
 
