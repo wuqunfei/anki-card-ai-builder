@@ -61,7 +61,7 @@ class TestAIEnrichment(unittest.TestCase):
         mock_client.messages.create.return_value = mock_response
 
         cards = [Card(source_word="dog", target_language="en")]
-        result = enrich_cards(cards, minimax_api_key="test-key")
+        result = enrich_cards(cards, api_key="test-key", provider="minimax")
 
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].target_word, "Hund")
@@ -71,6 +71,58 @@ class TestAIEnrichment(unittest.TestCase):
         self.assertIn("color:red", result[0].target_mnemonic)
         self.assertEqual(result[0].target_part_of_speech, "noun")
         self.assertEqual(result[0].status, "enriched")
+
+    @patch("anki_builder.enrich.ai.genai")
+    def test_enrich_cards_gemini(self, mock_genai_module):
+        mock_client = MagicMock()
+        mock_genai_module.Client.return_value = mock_client
+
+        enriched_data = json.dumps(
+            [
+                {
+                    "source_word": "dog",
+                    "target_word": "Hund",
+                    "target_pronunciation": "/dɒɡ/",
+                    "target_example_sentence": "The dog loves to play in the park! 🐕",
+                    "source_example_sentence": "Der Hund spielt gern im Park! 🐕",
+                    "target_mnemonic": '<span style="color:red">dog</span>',
+                    "target_part_of_speech": "noun",
+                }
+            ]
+        )
+
+        mock_response = MagicMock()
+        mock_response.text = enriched_data
+        mock_client.models.generate_content.return_value = mock_response
+
+        cards = [Card(source_word="dog", target_language="en")]
+        result = enrich_cards(cards, api_key="test-google-key", provider="gemini")
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].target_word, "Hund")
+        self.assertEqual(result[0].target_pronunciation, "/dɒɡ/")
+        self.assertIn("🐕", result[0].target_example_sentence)
+        self.assertEqual(result[0].target_part_of_speech, "noun")
+        self.assertEqual(result[0].status, "enriched")
+
+    @patch("anki_builder.enrich.ai.anthropic")
+    def test_enrich_cards_default_provider_is_minimax(self, mock_anthropic_module):
+        mock_client = MagicMock()
+        mock_anthropic_module.Anthropic.return_value = mock_client
+
+        enriched_data = json.dumps(
+            [{"source_word": "cat", "target_word": "Katze", "target_part_of_speech": "noun"}]
+        )
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text=enriched_data)]
+        mock_client.messages.create.return_value = mock_response
+
+        cards = [Card(source_word="cat", target_language="en")]
+        result = enrich_cards(cards, api_key="test-key")
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].target_word, "Katze")
+        mock_anthropic_module.Anthropic.assert_called_once()
 
 
 if __name__ == "__main__":
