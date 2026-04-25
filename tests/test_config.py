@@ -10,7 +10,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config.learner_profile, "ages 9-12, kid-friendly with emojis")
         self.assertTrue(config.audio_enabled)
         self.assertTrue(config.image_enabled)
-        self.assertEqual(config.concurrency, 5)
+        self.assertEqual(config.concurrency, 3)
         self.assertEqual(config.default_deck_name, "Vocabulary")
 
     def test_config_from_env(self):

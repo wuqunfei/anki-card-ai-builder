@@ -1,4 +1,5 @@
 import json
+import re
 import unittest
 import zipfile
 from pathlib import Path
@@ -46,7 +47,7 @@ class TestFullPipeline(unittest.TestCase):
 
         mock_audio.side_effect = lambda cards, media_dir: cards
 
-        async def fake_image(cards, media_dir, api_key, concurrency):
+        async def fake_image(cards, media_dir, api_key, concurrency, provider=None, fallback_key=None):
             return cards
 
         mock_image.side_effect = fake_image
@@ -61,15 +62,20 @@ class TestFullPipeline(unittest.TestCase):
             )
             self.assertEqual(result.exit_code, 0, msg=result.output)
 
-            cards_data = json.loads(Path("output/cards.json").read_text())
+            # Extract workspace path from output
+            match = re.search(r"Created new workspace: (.+)", result.output)
+            self.assertIsNotNone(match, "Could not find workspace path in output")
+            work_dir = match.group(1).strip()
+
+            cards_data = json.loads(Path(f"{work_dir}/cards.json").read_text())
             self.assertEqual(len(cards_data), 2)
             self.assertEqual(cards_data[0]["source_word"], "dog")
             self.assertEqual(cards_data[0]["target_part_of_speech"], "noun")
             self.assertIn("🎉", cards_data[0]["target_example_sentence"])
 
-            result2 = runner.invoke(main, ["export", "--deck", "TestDeck"])
+            result2 = runner.invoke(main, ["export", "--output", work_dir, "--deck", "TestDeck"])
             self.assertEqual(result2.exit_code, 0, msg=result2.output)
-            apkg_path = Path("output/TestDeck.apkg")
+            apkg_path = Path(f"{work_dir}/TestDeck.apkg")
             self.assertTrue(apkg_path.exists())
             self.assertTrue(zipfile.is_zipfile(apkg_path))
 
