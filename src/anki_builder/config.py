@@ -11,7 +11,8 @@ class Config:
         self.learner_profile = os.environ.get("LEARNER_PROFILE", "ages 9-12, kid-friendly with emojis")
         self.audio_enabled = os.environ.get("MEDIA_AUDIO_ENABLED", "true").lower() == "true"
         self.image_enabled = os.environ.get("MEDIA_IMAGE_ENABLED", "true").lower() == "true"
-        self.concurrency = int(os.environ.get("MEDIA_CONCURRENCY", "5"))
+        self.concurrency = int(os.environ.get("MEDIA_CONCURRENCY", "3"))
+        self.image_provider = os.environ.get("IMAGE_PROVIDER", "minimax")  # "minimax" or "gemini"
         self.default_deck_name = os.environ.get("EXPORT_DECK_NAME", "Vocabulary")
 
     @property

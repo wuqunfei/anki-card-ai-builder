@@ -169,9 +169,11 @@ def run(input_path: str | None, words: str | None, target_language: str, source_
             click.echo(f"  Audio: all {len(enriched)} cards already have audio, skipping.")
 
         if not no_images and config.image_enabled and need_image:
-            click.echo(f"  Generating images for {len(need_image)} cards ({len(enriched) - len(need_image)} already done)...")
+            image_api_key = config.google_api_key if config.image_provider == "gemini" else config.minimax_api_key
+            fallback_key = config.minimax_api_key if config.image_provider == "gemini" else config.google_api_key
+            click.echo(f"  Generating images for {len(need_image)} cards ({len(enriched) - len(need_image)} already done) [{config.image_provider}]...")
             enriched = asyncio.run(generate_image_batch(
-                enriched, state.media_dir, config.minimax_api_key, config.concurrency,
+                enriched, state.media_dir, image_api_key, config.concurrency, config.image_provider, fallback_key,
             ))
         elif not no_images and config.image_enabled:
             click.echo(f"  Images: all {len(enriched)} cards already have images, skipping.")
@@ -292,9 +294,11 @@ def media(no_images: bool, no_audio: bool):
 
     if not no_images and config.image_enabled:
         if need_image:
-            click.echo(f"Generating images for {len(need_image)} cards ({len(cards) - len(need_image)} already done)...")
+            image_api_key = config.google_api_key if config.image_provider == "gemini" else config.minimax_api_key
+            fallback_key = config.minimax_api_key if config.image_provider == "gemini" else config.google_api_key
+            click.echo(f"Generating images for {len(need_image)} cards ({len(cards) - len(need_image)} already done) [{config.image_provider}]...")
             cards = asyncio.run(generate_image_batch(
-                cards, state.media_dir, config.minimax_api_key, config.concurrency,
+                cards, state.media_dir, image_api_key, config.concurrency, config.image_provider, fallback_key,
             ))
         else:
             click.echo(f"Images: all {len(cards)} cards already have images, skipping.")

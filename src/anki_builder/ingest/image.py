@@ -53,8 +53,9 @@ def ingest_image(path: Path, target_language: str, source_language: str = "de", 
         raw_text = raw_text.split("```json")[1].split("```")[0].strip()
 
     data = json.loads(raw_text)
+    card_list = data["cards"] if isinstance(data, dict) and "cards" in data else data
     cards = []
-    for card_data in data["cards"]:
+    for card_data in card_list:
         card_data.pop("id", None)
         card_data.pop("status", None)
         card_data.pop("audio_file", None)
