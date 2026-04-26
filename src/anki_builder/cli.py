@@ -63,6 +63,8 @@ def _ingest_folder(
     source_language: str,
     google_api_key: str,
     minimax_api_key: str,
+    state: StateManager | None = None,
+    typing: bool = False,
 ) -> list[Card]:
     supported = IMAGE_EXTENSIONS | {".pdf"}
     files = sorted(f for f in folder.iterdir() if f.suffix.lower() in supported)
@@ -70,17 +72,31 @@ def _ingest_folder(
         raise click.ClickException(f"No supported files found in {folder}")
 
     all_cards: list[Card] = []
-    for f in files:
+    for i, f in enumerate(files, 1):
         suffix = f.suffix.lower()
-        if suffix in IMAGE_EXTENSIONS:
-            click.echo(f"  Processing image: {f.name}")
-            cards = ingest_image(f, target_language, source_language, google_api_key)
-        elif suffix == ".pdf":
-            click.echo(f"  Processing PDF: {f.name}")
-            cards = ingest_pdf(f, target_language, minimax_api_key, source_language)
-        else:
+        try:
+            if suffix in IMAGE_EXTENSIONS:
+                click.echo(f"  [{i}/{len(files)}] Processing image: {f.name}")
+                cards = ingest_image(f, target_language, source_language, google_api_key)
+            elif suffix == ".pdf":
+                click.echo(f"  [{i}/{len(files)}] Processing PDF: {f.name}")
+                cards = ingest_pdf(f, target_language, minimax_api_key, source_language)
+            else:
+                continue
+        except Exception as e:
+            click.echo(f"  Warning: failed to process {f.name}: {e}")
             continue
+
+        if typing:
+            cards = [c.model_copy(update={"typing": True}) for c in cards]
         all_cards.extend(cards)
+
+        # Save incrementally after each file
+        if state:
+            merged = state.merge_cards(all_cards)
+            state.save_cards(merged)
+            click.echo(f"  Saved {len(merged)} cards so far.")
+
     return all_cards
 
 
@@ -142,6 +158,7 @@ def run(
     config.require_minimax_key()
 
     # Ingest
+    input_type = None
     if words:
         cards = _words_to_cards(words, target_language, source_language, typing)
         click.echo(f"Step 1/4: Ingesting {len(cards)} words from command line...")
@@ -166,10 +183,11 @@ def run(
             cards = ingest_image(path, target_language, source_language, config.google_api_key)
         elif input_type == "folder":
             cards = _ingest_folder(
-                Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key
+                Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key,
+                state=state, typing=typing,
             )
 
-    if typing:
+    if typing and input_type != "folder":
         cards = [c.model_copy(update={"typing": True}) for c in cards]
 
     merged = state.merge_cards(cards)
@@ -272,6 +290,7 @@ def ingest(
     work_dir = _resolve_work_dir(output_dir)
     state = StateManager(work_dir)
 
+    input_type = None
     if words:
         cards = _words_to_cards(words, target_language, source_language, typing)
         click.echo(f"Ingesting {len(cards)} words from command line...")
@@ -300,10 +319,11 @@ def ingest(
             cards = ingest_image(path, target_language, source_language, config.google_api_key)
         elif input_type == "folder":
             cards = _ingest_folder(
-                Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key
+                Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key,
+                state=state, typing=typing,
             )
 
-    if typing:
+    if typing and input_type != "folder":
         cards = [c.model_copy(update={"typing": True}) for c in cards]
 
     merged = state.merge_cards(cards)
