@@ -6,7 +6,7 @@ from typing import Optional
 import typer
 
 from anki_builder.config import Config, load_config
-from anki_builder.constants import IMAGE_EXTENSIONS, STATUS_ENRICHED, STATUS_EXTRACTED
+from anki_builder.constants import IMAGE_EXTENSIONS, STATUS_EXTRACTED
 from anki_builder.enrich.ai import enrich_cards
 from anki_builder.export.apkg import export_apkg
 from anki_builder.ingest.excel import ingest_excel
