@@ -1,0 +1,169 @@
+<svg width="100%" viewBox="0 0 680 500" role="img" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+<title>The cognitive cost of AI-accelerated development</title>
+<desc>A cartoon engineer surrounded by five AI robots, each asking a design question. The engineer looks exhausted with hands on head.</desc>
+<style>
+.rb1{fill:#c084fc;stroke:#7c3aed;stroke-width:1.5}
+.rb2{fill:#fb923c;stroke:#c2410c;stroke-width:1.5}
+.rb3{fill:#4ade80;stroke:#15803d;stroke-width:1.5}
+.rb4{fill:#60a5fa;stroke:#1d4ed8;stroke-width:1.5}
+.rb5{fill:#f472b6;stroke:#be185d;stroke-width:1.5}
+</style>
+
+<rect width="680" height="500" rx="14" fill="#eef2ff"/>
+<rect x="1" y="1" width="678" height="498" rx="14" fill="none" stroke="#c7d2fe" stroke-width="1"/>
+
+<text x="340" y="27" text-anchor="middle" font-size="14" font-weight="600" fill="#1e293b">The new bottleneck</text>
+<text x="340" y="43" text-anchor="middle" font-size="11" fill="#64748b">When agents code in seconds, every decision is yours</text>
+
+<line x1="340" y1="148" x2="340" y2="220" stroke="#a5b4fc" stroke-width="1.2" stroke-dasharray="4,3"/>
+<line x1="504" y1="158" x2="368" y2="243" stroke="#a5b4fc" stroke-width="1.2" stroke-dasharray="4,3"/>
+<line x1="476" y1="372" x2="362" y2="278" stroke="#a5b4fc" stroke-width="1.2" stroke-dasharray="4,3"/>
+<line x1="204" y1="372" x2="318" y2="278" stroke="#a5b4fc" stroke-width="1.2" stroke-dasharray="4,3"/>
+<line x1="176" y1="158" x2="312" y2="243" stroke="#a5b4fc" stroke-width="1.2" stroke-dasharray="4,3"/>
+
+<rect x="255" y="48" width="170" height="26" rx="8" fill="white" stroke="#c084fc" stroke-width="1.5"/>
+<polygon points="328,74 340,84 352,74" fill="white" stroke="#c084fc" stroke-width="1.5" stroke-linejoin="round"/>
+<text x="340" y="65" text-anchor="middle" font-size="10" font-weight="600" fill="#6d28d9">Batch or per-card?</text>
+
+<rect x="538" y="177" width="126" height="26" rx="8" fill="white" stroke="#fb923c" stroke-width="1.5"/>
+<polygon points="538,184 527,190 538,196" fill="white" stroke="#fb923c" stroke-width="1.5" stroke-linejoin="round"/>
+<text x="601" y="194" text-anchor="middle" font-size="10" font-weight="600" fill="#9a3412">String or UUID?</text>
+
+<rect x="506" y="377" width="152" height="26" rx="8" fill="white" stroke="#4ade80" stroke-width="1.5"/>
+<polygon points="506,384 495,390 506,396" fill="white" stroke="#4ade80" stroke-width="1.5" stroke-linejoin="round"/>
+<text x="582" y="394" text-anchor="middle" font-size="10" font-weight="600" fill="#14532d">Save state now?</text>
+
+<rect x="18" y="377" width="152" height="26" rx="8" fill="white" stroke="#60a5fa" stroke-width="1.5"/>
+<polygon points="170,384 181,390 170,396" fill="white" stroke="#60a5fa" stroke-width="1.5" stroke-linejoin="round"/>
+<text x="94" y="394" text-anchor="middle" font-size="10" font-weight="600" fill="#1e3a8a">Absolute paths?</text>
+
+<rect x="18" y="177" width="126" height="26" rx="8" fill="white" stroke="#f472b6" stroke-width="1.5"/>
+<polygon points="144,184 155,190 144,196" fill="white" stroke="#f472b6" stroke-width="1.5" stroke-linejoin="round"/>
+<text x="81" y="194" text-anchor="middle" font-size="10" font-weight="600" fill="#9d174d">Which API first?</text>
+
+<rect x="330" y="137" width="8" height="8" rx="3" class="rb1"/>
+<rect x="342" y="137" width="8" height="8" rx="3" class="rb1"/>
+<rect x="326" y="109" width="28" height="28" rx="5" class="rb1"/>
+<rect x="319" y="112" width="8" height="18" rx="4" class="rb1"/>
+<rect x="353" y="112" width="8" height="18" rx="4" class="rb1"/>
+<rect x="333" y="117" width="14" height="10" rx="2" fill="white" opacity="0.4"/>
+<rect x="328" y="91" width="24" height="18" rx="5" class="rb1"/>
+<circle cx="336" cy="99" r="3" fill="white"/>
+<circle cx="344" cy="99" r="3" fill="white"/>
+<circle cx="336" cy="100" r="1.5" fill="#7c3aed"/>
+<circle cx="344" cy="100" r="1.5" fill="#7c3aed"/>
+<line x1="340" y1="91" x2="340" y2="81" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/>
+<circle cx="340" cy="77" r="4" class="rb1"/>
+
+<rect x="500" y="202" width="8" height="8" rx="3" class="rb2"/>
+<rect x="512" y="202" width="8" height="8" rx="3" class="rb2"/>
+<rect x="496" y="174" width="28" height="28" rx="5" class="rb2"/>
+<rect x="489" y="177" width="8" height="18" rx="4" class="rb2"/>
+<rect x="523" y="177" width="8" height="18" rx="4" class="rb2"/>
+<rect x="503" y="182" width="14" height="10" rx="2" fill="white" opacity="0.4"/>
+<rect x="498" y="156" width="24" height="18" rx="5" class="rb2"/>
+<circle cx="506" cy="164" r="3" fill="white"/>
+<circle cx="518" cy="164" r="3" fill="white"/>
+<circle cx="506" cy="165" r="1.5" fill="#c2410c"/>
+<circle cx="518" cy="165" r="1.5" fill="#c2410c"/>
+<line x1="510" y1="156" x2="510" y2="146" stroke="#c2410c" stroke-width="1.5" stroke-linecap="round"/>
+<circle cx="510" cy="142" r="4" class="rb2"/>
+
+<rect x="470" y="402" width="8" height="8" rx="3" class="rb3"/>
+<rect x="482" y="402" width="8" height="8" rx="3" class="rb3"/>
+<rect x="466" y="374" width="28" height="28" rx="5" class="rb3"/>
+<rect x="459" y="377" width="8" height="18" rx="4" class="rb3"/>
+<rect x="493" y="377" width="8" height="18" rx="4" class="rb3"/>
+<rect x="473" y="382" width="14" height="10" rx="2" fill="white" opacity="0.4"/>
+<rect x="468" y="356" width="24" height="18" rx="5" class="rb3"/>
+<circle cx="476" cy="364" r="3" fill="white"/>
+<circle cx="488" cy="364" r="3" fill="white"/>
+<circle cx="476" cy="365" r="1.5" fill="#15803d"/>
+<circle cx="488" cy="365" r="1.5" fill="#15803d"/>
+<line x1="480" y1="356" x2="480" y2="346" stroke="#15803d" stroke-width="1.5" stroke-linecap="round"/>
+<circle cx="480" cy="342" r="4" class="rb3"/>
+
+<rect x="190" y="402" width="8" height="8" rx="3" class="rb4"/>
+<rect x="202" y="402" width="8" height="8" rx="3" class="rb4"/>
+<rect x="186" y="374" width="28" height="28" rx="5" class="rb4"/>
+<rect x="179" y="377" width="8" height="18" rx="4" class="rb4"/>
+<rect x="213" y="377" width="8" height="18" rx="4" class="rb4"/>
+<rect x="193" y="382" width="14" height="10" rx="2" fill="white" opacity="0.4"/>
+<rect x="188" y="356" width="24" height="18" rx="5" class="rb4"/>
+<circle cx="196" cy="364" r="3" fill="white"/>
+<circle cx="208" cy="364" r="3" fill="white"/>
+<circle cx="196" cy="365" r="1.5" fill="#1d4ed8"/>
+<circle cx="208" cy="365" r="1.5" fill="#1d4ed8"/>
+<line x1="200" y1="356" x2="200" y2="346" stroke="#1d4ed8" stroke-width="1.5" stroke-linecap="round"/>
+<circle cx="200" cy="342" r="4" class="rb4"/>
+
+<rect x="160" y="202" width="8" height="8" rx="3" class="rb5"/>
+<rect x="172" y="202" width="8" height="8" rx="3" class="rb5"/>
+<rect x="156" y="174" width="28" height="28" rx="5" class="rb5"/>
+<rect x="149" y="177" width="8" height="18" rx="4" class="rb5"/>
+<rect x="183" y="177" width="8" height="18" rx="4" class="rb5"/>
+<rect x="163" y="182" width="14" height="10" rx="2" fill="white" opacity="0.4"/>
+<rect x="158" y="156" width="24" height="18" rx="5" class="rb5"/>
+<circle cx="166" cy="164" r="3" fill="white"/>
+<circle cx="178" cy="164" r="3" fill="white"/>
+<circle cx="166" cy="165" r="1.5" fill="#be185d"/>
+<circle cx="178" cy="165" r="1.5" fill="#be185d"/>
+<line x1="170" y1="156" x2="170" y2="146" stroke="#be185d" stroke-width="1.5" stroke-linecap="round"/>
+<circle cx="170" cy="142" r="4" class="rb5"/>
+
+<rect x="296" y="316" width="88" height="50" rx="5" fill="#1e293b"/>
+<rect x="302" y="322" width="76" height="38" rx="3" fill="#334155"/>
+<line x1="308" y1="331" x2="358" y2="331" stroke="#94a3b8" stroke-width="1.5"/>
+<line x1="308" y1="338" x2="370" y2="338" stroke="#7c3aed" stroke-width="1.5"/>
+<line x1="308" y1="345" x2="350" y2="345" stroke="#94a3b8" stroke-width="1.5"/>
+<line x1="308" y1="352" x2="364" y2="352" stroke="#fb923c" stroke-width="1.5"/>
+<rect x="284" y="366" width="112" height="6" rx="3" fill="#1e293b"/>
+
+<rect x="312" y="274" width="56" height="58" rx="10" fill="#334155"/>
+
+<circle cx="340" cy="238" r="36" fill="#fde8c4" stroke="#d4a862" stroke-width="1.5"/>
+
+<path d="M304 230 Q308 200 340 196 Q372 200 376 230" fill="#3d2b1f"/>
+
+<ellipse cx="328" cy="236" rx="8" ry="7" fill="white"/>
+<path d="M320 230 Q328 235 336 230" fill="#3d2b1f"/>
+<circle cx="328" cy="237" r="3.5" fill="#3d2b1f"/>
+<circle cx="326" cy="235" r="1.2" fill="white"/>
+<ellipse cx="328" cy="244" rx="9" ry="3" fill="#c9a08a" opacity="0.45"/>
+
+<ellipse cx="352" cy="236" rx="8" ry="7" fill="white"/>
+<path d="M344 230 Q352 235 360 230" fill="#3d2b1f"/>
+<circle cx="352" cy="237" r="3.5" fill="#3d2b1f"/>
+<circle cx="350" cy="235" r="1.2" fill="white"/>
+<ellipse cx="352" cy="244" rx="9" ry="3" fill="#c9a08a" opacity="0.45"/>
+
+<path d="M338 250 Q340 254 342 250" fill="none" stroke="#c8956c" stroke-width="1.5" stroke-linecap="round"/>
+
+<path d="M331 259 Q335 263 340 259 Q345 255 349 259" fill="none" stroke="#9c6650" stroke-width="2" stroke-linecap="round"/>
+
+<path d="M314 278 Q296 262 304 246 Q310 236 316 222" stroke="#334155" stroke-width="12" stroke-linecap="round" fill="none"/>
+<path d="M366 278 Q384 262 376 246 Q370 236 364 222" stroke="#334155" stroke-width="12" stroke-linecap="round" fill="none"/>
+<circle cx="316" cy="222" r="9" fill="#fde8c4" stroke="#d4a862" stroke-width="1.5"/>
+<circle cx="364" cy="222" r="9" fill="#fde8c4" stroke="#d4a862" stroke-width="1.5"/>
+
+<ellipse cx="374" cy="228" rx="3.5" ry="5" fill="#93c5fd"/>
+<polygon points="374,223 377,228 371,228" fill="#93c5fd"/>
+<ellipse cx="380" cy="238" rx="3" ry="4.5" fill="#93c5fd"/>
+<polygon points="380,234 383,238 377,238" fill="#93c5fd"/>
+
+<text x="340" y="202" text-anchor="middle" font-size="19" font-weight="700" fill="#f97316">???</text>
+
+<circle cx="376" cy="214" r="4" fill="#fef9c3" stroke="#f59e0b" stroke-width="1"/>
+<circle cx="387" cy="206" r="6" fill="#fef9c3" stroke="#f59e0b" stroke-width="1"/>
+<circle cx="400" cy="199" r="8" fill="#fef9c3" stroke="#f59e0b" stroke-width="1"/>
+<rect x="400" y="186" width="58" height="20" rx="10" fill="#fef9c3" stroke="#f59e0b" stroke-width="1"/>
+<text x="429" y="200" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">DECIDE</text>
+
+<rect x="396" y="332" width="16" height="18" rx="2" fill="#f8fafc" stroke="#94a3b8" stroke-width="1"/>
+<path d="M412 337 Q418 337 418 341 Q418 345 412 345" fill="none" stroke="#94a3b8" stroke-width="1"/>
+<path d="M400 329 Q402 323 400 317" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M406 329 Q408 321 406 315" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round"/>
+
+<rect x="80" y="460" width="520" height="24" rx="8" fill="#e0e7ff"/>
+<text x="340" y="476" text-anchor="middle" font-size="10" fill="#4338ca">10 agents · 1 engineer · every architectural call, every 10 minutes</text>
+</svg>

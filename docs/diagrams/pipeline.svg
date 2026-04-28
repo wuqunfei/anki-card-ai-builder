@@ -1,0 +1,77 @@
+<svg viewBox="0 0 900 220" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/>
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000018"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="220" fill="#f8fafc"/>
+
+  <!-- Title -->
+  <text x="450" y="28" text-anchor="middle" font-size="14" font-weight="600" fill="#475569" letter-spacing="0.5">ankids — 5-Step Pipeline</text>
+
+  <!-- ① Ingest -->
+  <rect x="20" y="50" width="130" height="120" rx="14" fill="white" stroke="#5b9bd5" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="20" y="50" width="130" height="36" rx="14" fill="#5b9bd5"/>
+  <rect x="20" y="68" width="130" height="18" fill="#5b9bd5"/>
+  <text x="85" y="74" text-anchor="middle" font-size="12" font-weight="700" fill="white" letter-spacing="0.3">① INGEST</text>
+  <text x="85" y="108" text-anchor="middle" font-size="22">📥</text>
+  <text x="85" y="134" text-anchor="middle" font-size="10.5" fill="#475569">Words · Excel · PDF</text>
+  <text x="85" y="150" text-anchor="middle" font-size="10.5" fill="#475569">Image OCR · Drive</text>
+
+  <!-- Arrow 1→2 -->
+  <line x1="151" y1="110" x2="175" y2="110" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ② Enrich -->
+  <rect x="178" y="50" width="130" height="120" rx="14" fill="white" stroke="#9b59b6" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="178" y="50" width="130" height="36" rx="14" fill="#9b59b6"/>
+  <rect x="178" y="68" width="130" height="18" fill="#9b59b6"/>
+  <text x="243" y="74" text-anchor="middle" font-size="12" font-weight="700" fill="white" letter-spacing="0.3">② ENRICH</text>
+  <text x="243" y="108" text-anchor="middle" font-size="22">🧠</text>
+  <text x="243" y="134" text-anchor="middle" font-size="10.5" fill="#475569">Translation · IPA</text>
+  <text x="243" y="150" text-anchor="middle" font-size="10.5" fill="#475569">Etymology · Mnemonics</text>
+
+  <!-- Arrow 2→3 -->
+  <line x1="309" y1="110" x2="333" y2="110" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ③ Media -->
+  <rect x="336" y="50" width="130" height="120" rx="14" fill="white" stroke="#e07b7b" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="336" y="50" width="130" height="36" rx="14" fill="#e07b7b"/>
+  <rect x="336" y="68" width="130" height="18" fill="#e07b7b"/>
+  <text x="401" y="74" text-anchor="middle" font-size="12" font-weight="700" fill="white" letter-spacing="0.3">③ MEDIA</text>
+  <text x="401" y="108" text-anchor="middle" font-size="22">🎨</text>
+  <text x="401" y="134" text-anchor="middle" font-size="10.5" fill="#475569">TTS Audio (gTTS)</text>
+  <text x="401" y="150" text-anchor="middle" font-size="10.5" fill="#475569">AI Cartoon Images</text>
+
+  <!-- Arrow 3→4 -->
+  <line x1="467" y1="110" x2="491" y2="110" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ④ Review -->
+  <rect x="494" y="50" width="130" height="120" rx="14" fill="white" stroke="#D4A854" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="494" y="50" width="130" height="36" rx="14" fill="#D4A854"/>
+  <rect x="494" y="68" width="130" height="18" fill="#D4A854"/>
+  <text x="559" y="74" text-anchor="middle" font-size="12" font-weight="700" fill="white" letter-spacing="0.3">④ REVIEW</text>
+  <text x="559" y="108" text-anchor="middle" font-size="22">🔍</text>
+  <text x="559" y="134" text-anchor="middle" font-size="10.5" fill="#475569">Inspect Cards</text>
+  <text x="559" y="150" text-anchor="middle" font-size="10.5" fill="#475569">Check Media</text>
+
+  <!-- Arrow 4→5 -->
+  <line x1="625" y1="110" x2="649" y2="110" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ⑤ Export -->
+  <rect x="652" y="50" width="130" height="120" rx="14" fill="white" stroke="#6dba6d" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="652" y="50" width="130" height="36" rx="14" fill="#6dba6d"/>
+  <rect x="652" y="68" width="130" height="18" fill="#6dba6d"/>
+  <text x="717" y="74" text-anchor="middle" font-size="12" font-weight="700" fill="white" letter-spacing="0.3">⑤ EXPORT</text>
+  <text x="717" y="108" text-anchor="middle" font-size="22">📦</text>
+  <text x="717" y="134" text-anchor="middle" font-size="10.5" fill="#475569">Bundle .apkg</text>
+  <text x="717" y="150" text-anchor="middle" font-size="10.5" fill="#475569">Import into Anki</text>
+
+  <!-- State file note -->
+  <rect x="160" y="185" width="420" height="26" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="370" y="202" text-anchor="middle" font-size="10" fill="#64748b">Each step reads &amp; writes <tspan font-weight="600" fill="#475569">cards.json</tspan> — resumable at any point</text>
+</svg>

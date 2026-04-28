@@ -1,0 +1,97 @@
+<svg viewBox="0 0 820 380" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/>
+    </marker>
+    <filter id="boxshadow">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#00000020"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="820" height="380" fill="#f8fafc" rx="14"/>
+  <rect x="1" y="1" width="818" height="378" fill="none" stroke="#e2e8f0" stroke-width="1" rx="14"/>
+
+  <!-- Title -->
+  <text x="410" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#1e293b">External API Services</text>
+
+  <!-- ── ankids (center) ── -->
+  <rect x="310" y="148" width="200" height="84" rx="14" fill="#1e293b" filter="url(#boxshadow)"/>
+  <text x="410" y="180" text-anchor="middle" font-size="11" fill="#94a3b8" letter-spacing="1">CLI TOOL</text>
+  <text x="410" y="200" text-anchor="middle" font-size="20" font-weight="800" fill="white">ankids</text>
+  <text x="410" y="218" text-anchor="middle" font-size="10" fill="#64748b">Python · Typer · Pydantic</text>
+
+  <!-- ── MiniMax (top-left) ── -->
+  <rect x="36" y="52" width="200" height="116" rx="12" fill="white" stroke="#c084fc" stroke-width="2" filter="url(#boxshadow)"/>
+  <rect x="36" y="52" width="200" height="30" rx="12" fill="#a855f7"/>
+  <rect x="36" y="68" width="200" height="14" fill="#a855f7"/>
+  <text x="136" y="72" text-anchor="middle" font-size="11" font-weight="700" fill="white" letter-spacing="0.5">MINIMAX API</text>
+  <text x="136" y="100" text-anchor="middle" font-size="19">🧠</text>
+  <text x="136" y="118" text-anchor="middle" font-size="10.5" fill="#475569" font-weight="600">MiniMax M2.5</text>
+  <text x="136" y="132" text-anchor="middle" font-size="10" fill="#64748b">AI enrichment</text>
+  <text x="136" y="146" text-anchor="middle" font-size="10" fill="#64748b">image-01 · Image gen</text>
+
+  <!-- arrow ankids → MiniMax (enrichment) -->
+  <line x1="310" y1="168" x2="238" y2="125" stroke="#a855f7" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+  <rect x="240" y="130" width="70" height="20" rx="5" fill="#faf5ff"/>
+  <text x="275" y="143" text-anchor="middle" font-size="9" fill="#9333ea">Enrich cards</text>
+
+  <!-- arrow ankids → MiniMax (image) -->
+  <line x1="314" y1="192" x2="240" y2="152" stroke="#a855f7" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+  <rect x="228" y="155" width="72" height="20" rx="5" fill="#faf5ff"/>
+  <text x="264" y="168" text-anchor="middle" font-size="9" fill="#9333ea">Generate image</text>
+
+  <!-- ── Google Gemini (top-right) ── -->
+  <rect x="584" y="52" width="200" height="116" rx="12" fill="white" stroke="#60a5fa" stroke-width="2" filter="url(#boxshadow)"/>
+  <rect x="584" y="52" width="200" height="30" rx="12" fill="#2563eb"/>
+  <rect x="584" y="68" width="200" height="14" fill="#2563eb"/>
+  <text x="684" y="72" text-anchor="middle" font-size="11" font-weight="700" fill="white" letter-spacing="0.5">GOOGLE API</text>
+  <text x="684" y="100" text-anchor="middle" font-size="19">👁️</text>
+  <text x="684" y="118" text-anchor="middle" font-size="10.5" fill="#475569" font-weight="600">Gemini 3 Flash</text>
+  <text x="684" y="132" text-anchor="middle" font-size="10" fill="#64748b">Image OCR · Drive listing</text>
+  <text x="684" y="146" text-anchor="middle" font-size="10" fill="#64748b">Image gen (fallback)</text>
+
+  <!-- arrow ankids → Google (OCR) -->
+  <line x1="510" y1="168" x2="582" y2="124" stroke="#2563eb" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+  <rect x="510" y="126" width="60" height="20" rx="5" fill="#eff6ff"/>
+  <text x="540" y="139" text-anchor="middle" font-size="9" fill="#1d4ed8">OCR images</text>
+
+  <!-- arrow ankids → Google (fallback image) -->
+  <line x1="506" y1="192" x2="582" y2="154" stroke="#2563eb" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+  <rect x="506" y="155" width="72" height="20" rx="5" fill="#eff6ff"/>
+  <text x="542" y="168" text-anchor="middle" font-size="9" fill="#1d4ed8">Fallback images</text>
+
+  <!-- ── gTTS (bottom-left) ── -->
+  <rect x="36" y="252" width="200" height="100" rx="12" fill="white" stroke="#34d399" stroke-width="2" filter="url(#boxshadow)"/>
+  <rect x="36" y="252" width="200" height="30" rx="12" fill="#059669"/>
+  <rect x="36" y="268" width="200" height="14" fill="#059669"/>
+  <text x="136" y="272" text-anchor="middle" font-size="11" font-weight="700" fill="white" letter-spacing="0.5">gTTS (GOOGLE)</text>
+  <text x="136" y="299" text-anchor="middle" font-size="19">🔊</text>
+  <text x="136" y="318" text-anchor="middle" font-size="10.5" fill="#475569" font-weight="600">Text-to-Speech</text>
+  <text x="136" y="333" text-anchor="middle" font-size="10" fill="#64748b">EN · FR · DE · ZH</text>
+
+  <!-- arrow ankids → gTTS -->
+  <line x1="310" y1="210" x2="238" y2="285" stroke="#059669" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+  <rect x="222" y="232" width="76" height="20" rx="5" fill="#f0fdf4"/>
+  <text x="260" y="245" text-anchor="middle" font-size="9" fill="#065f46">Word + sentence</text>
+
+  <!-- ── genanki (bottom-right) ── -->
+  <rect x="584" y="252" width="200" height="100" rx="12" fill="white" stroke="#fb923c" stroke-width="2" filter="url(#boxshadow)"/>
+  <rect x="584" y="252" width="200" height="30" rx="12" fill="#ea580c"/>
+  <rect x="584" y="268" width="200" height="14" fill="#ea580c"/>
+  <text x="684" y="272" text-anchor="middle" font-size="11" font-weight="700" fill="white" letter-spacing="0.5">GENANKI</text>
+  <text x="684" y="299" text-anchor="middle" font-size="19">📦</text>
+  <text x="684" y="318" text-anchor="middle" font-size="10.5" fill="#475569" font-weight="600">Anki .apkg Packager</text>
+  <text x="684" y="333" text-anchor="middle" font-size="10" fill="#64748b">HTML templates · Media embed</text>
+
+  <!-- arrow ankids → genanki -->
+  <line x1="510" y1="210" x2="582" y2="284" stroke="#ea580c" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+  <rect x="500" y="232" width="72" height="20" rx="5" fill="#fff7ed"/>
+  <text x="536" y="245" text-anchor="middle" font-size="9" fill="#9a3412">Cards + media</text>
+
+  <!-- Provider fallback note -->
+  <rect x="270" y="272" width="280" height="42" rx="8" fill="#fef9c3" stroke="#fde047" stroke-width="1"/>
+  <text x="410" y="289" text-anchor="middle" font-size="10" fill="#713f12" font-weight="600">↕ Provider Fallback</text>
+  <text x="410" y="304" text-anchor="middle" font-size="9.5" fill="#854d0e">MiniMax (primary) → Gemini (fallback)</text>
+  <text x="410" y="317" text-anchor="middle" font-size="9" fill="#a16207">Auto-switches on rate-limit · Progress always saved</text>
+</svg>

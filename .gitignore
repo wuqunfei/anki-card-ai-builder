@@ -11,4 +11,3 @@ dist/
 input/
 workspace/*
 !workspace/.gitkeep
-docs/
