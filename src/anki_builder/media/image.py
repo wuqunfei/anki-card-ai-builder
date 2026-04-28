@@ -8,6 +8,16 @@ import httpx
 from anki_builder.constants import MAX_RETRIES, MINIMAX_IMAGE_MODEL, MINIMAX_IMAGE_URL
 from anki_builder.schema import Card
 
+
+class RateLimitError(click.ClickException):
+    """Raised when an API rate limit (429) is hit — stops the entire batch."""
+
+    def __init__(self, provider: str, detail: str = ""):
+        msg = f"Rate limit reached ({provider}). Stopping image generation."
+        if detail:
+            msg += f" Detail: {detail}"
+        super().__init__(msg)
+
 LANG_NAMES = {
     "en": "English",
     "fr": "French",
@@ -87,13 +97,15 @@ async def _generate_minimax(
         except httpx.TimeoutException:
             click.echo(f"  [{card.source_word}] attempt {attempt + 1}/{MAX_RETRIES}: timeout (120s)")
         except httpx.HTTPStatusError as e:
+            if e.response.status_code == 429:
+                raise RateLimitError("MiniMax", e.response.text[:200])
             click.echo(
                 f"  [{card.source_word}] attempt {attempt + 1}/{MAX_RETRIES}: HTTP {e.response.status_code} — {e.response.text[:200]}"  # noqa: E501
             )
         except Exception as e:
             click.echo(f"  [{card.source_word}] attempt {attempt + 1}/{MAX_RETRIES}: {type(e).__name__}: {e}")
         if attempt < MAX_RETRIES - 1:
-            await asyncio.sleep(3)
+            await asyncio.sleep(1)
 
     click.echo(f"Warning: image generation failed for '{card.source_word}', skipping.")
     return card
@@ -122,7 +134,7 @@ async def _generate_gemini(
 
     for attempt in range(MAX_RETRIES):
         try:
-            response = gemini_client.models.generate_content(
+            response = await gemini_client.aio.models.generate_content(
                 model="gemini-3.1-flash-image-preview",
                 contents=prompt,
                 config=types.GenerateContentConfig(
@@ -139,9 +151,12 @@ async def _generate_gemini(
                         return card.model_copy(update={"image_file": str(image_path)})
             click.echo(f"  [{card.source_word}] attempt {attempt + 1}/{MAX_RETRIES}: no image in response")
         except Exception as e:
+            # Gemini SDK raises ClientError with code 429 for rate limits
+            if getattr(e, "code", None) == 429 or "429" in str(e):
+                raise RateLimitError("Gemini", str(e)[:200])
             click.echo(f"  [{card.source_word}] attempt {attempt + 1}/{MAX_RETRIES}: {type(e).__name__}: {e}")
         if attempt < MAX_RETRIES - 1:
-            await asyncio.sleep(3)
+            await asyncio.sleep(1)
 
     click.echo(f"Warning: image generation failed for '{card.source_word}', skipping.")
     return card
@@ -185,11 +200,24 @@ async def generate_image_batch(
     fallback_api_key: str = "",
 ) -> list[Card]:
     semaphore = asyncio.Semaphore(concurrency)
+    total = len(cards)
+    progress = {"done": 0}
+    results: dict[int, Card] = {}
 
-    async def _limited(card: Card, client: httpx.AsyncClient) -> Card:
+    async def _limited(idx: int, card: Card, client: httpx.AsyncClient) -> None:
         async with semaphore:
-            return await generate_image_for_card(card, media_dir, api_key, client, provider, fallback_api_key)
+            result = await generate_image_for_card(card, media_dir, api_key, client, provider, fallback_api_key)
+            results[idx] = result
+            progress["done"] += 1
+            status = "ok" if result.image_file else "skipped"
+            click.echo(f"  Image done: '{card.source_word}' [{status}] ({progress['done']}/{total})")
 
     async with httpx.AsyncClient() as client:
-        tasks = [_limited(card, client) for card in cards]
-        return await asyncio.gather(*tasks)
+        tasks = [_limited(i, card, client) for i, card in enumerate(cards)]
+        try:
+            await asyncio.gather(*tasks)
+        except RateLimitError:
+            click.echo("  Rate limit hit — stopping image generation. Progress saved.")
+
+    # Return results for completed cards, originals for the rest
+    return [results.get(i, card) for i, card in enumerate(cards)]

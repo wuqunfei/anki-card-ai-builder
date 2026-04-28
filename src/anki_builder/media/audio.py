@@ -63,11 +63,14 @@ def generate_audio_for_card(card: Card, media_dir: Path) -> Card:
 def generate_audio_batch(cards: list[Card], media_dir: Path) -> list[Card]:
     import click
 
+    total = len(cards)
     result = []
-    for card in cards:
+    for i, card in enumerate(cards, 1):
         try:
-            result.append(generate_audio_for_card(card, media_dir))
+            updated = generate_audio_for_card(card, media_dir)
+            result.append(updated)
+            click.echo(f"  Audio done: '{card.source_word}' ({i}/{total})")
         except Exception as e:
-            click.echo(f"  Warning: audio failed for '{card.source_word}': {e}")
+            click.echo(f"  Warning: audio failed for '{card.source_word}': {e} ({i}/{total})")
             result.append(card)
     return result

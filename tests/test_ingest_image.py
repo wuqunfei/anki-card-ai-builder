@@ -4,6 +4,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import click
+
 from anki_builder.ingest.image import ingest_image
 
 TESTS_DIR = Path(__file__).parent
@@ -121,7 +123,7 @@ class TestIngestImage(unittest.TestCase):
         mock_client_cls.return_value = mock_client
         mock_pil_open.return_value = MagicMock()
 
-        with self.assertRaises(json.JSONDecodeError):
+        with self.assertRaises(click.exceptions.ClickException):
             ingest_image(Path("test.png"), target_language="fr", google_api_key="test-key")
 
 
