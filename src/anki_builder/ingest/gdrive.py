@@ -4,6 +4,7 @@ from pathlib import Path
 
 import httpx
 
+from anki_builder.constants import IMAGE_EXTENSIONS
 from anki_builder.ingest.excel import ingest_excel
 from anki_builder.ingest.image import ingest_image
 from anki_builder.ingest.pdf import ingest_pdf
@@ -14,7 +15,6 @@ GDRIVE_URL_PATTERN = re.compile(r"(?:https?://)?drive\.google\.com/drive/folders
 
 EXCEL_EXTENSIONS = {".xlsx", ".csv"}
 PDF_EXTENSIONS = {".pdf"}
-IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp"}
 ALL_EXTENSIONS = EXCEL_EXTENSIONS | PDF_EXTENSIONS | IMAGE_EXTENSIONS
 
 

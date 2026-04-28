@@ -1,9 +1,10 @@
-import json
-import re
-
 import anthropic
 
 from anki_builder.constants import MINIMAX_BASE_URL, MINIMAX_MODEL
+from anki_builder.enrich import extract_response_text, parse_json_response
+
+# Re-export for backward compatibility with tests
+_parse_vocabulary_response = parse_json_response
 
 
 def _build_text_prompt(text: str, target_language: str, source_language: str) -> str:
@@ -17,19 +18,6 @@ def _build_text_prompt(text: str, target_language: str, source_language: str) ->
         f"the source text — only extract what's there.\n\n"
         f"Text:\n{text}"
     )
-
-
-def _parse_vocabulary_response(text: str) -> list[dict]:
-    # Strip markdown code fences if present
-    cleaned = re.sub(r"^```(?:json)?\s*\n?", "", text.strip())
-    cleaned = re.sub(r"\n?```\s*$", "", cleaned)
-    try:
-        data = json.loads(cleaned)
-        if isinstance(data, list):
-            return data
-        return []
-    except json.JSONDecodeError:
-        return []
 
 
 def extract_vocabulary_with_ai(
@@ -53,9 +41,4 @@ def extract_vocabulary_with_ai(
         ],
         temperature=0.1,
     )
-    content = ""
-    for block in response.content:
-        if hasattr(block, "text"):
-            content = block.text
-            break
-    return _parse_vocabulary_response(content)
+    return parse_json_response(extract_response_text(response))

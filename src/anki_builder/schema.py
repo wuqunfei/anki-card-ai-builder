@@ -2,13 +2,15 @@ import uuid
 
 from pydantic import BaseModel, Field
 
+from anki_builder.constants import STATUS_EXTRACTED
+
 
 class Card(BaseModel):
     # --- Metadata & Tracking ---
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     unit: str | None = None  # Textbook unit (e.g., "Unité 1")
     reference: str | None = None  # Origin (e.g., "Page 162")
-    status: str = "extracted"  # Workflow state
+    status: str = STATUS_EXTRACTED  # Workflow state
     tags: list[str] = Field(default_factory=list)
     audio_file: str | None = None
     image_file: str | None = None

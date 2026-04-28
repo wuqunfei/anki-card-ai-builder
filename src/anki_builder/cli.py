@@ -4,7 +4,8 @@ from pathlib import Path
 
 import click
 
-from anki_builder.config import load_config
+from anki_builder.config import Config, load_config
+from anki_builder.constants import IMAGE_EXTENSIONS, STATUS_ENRICHED, STATUS_EXTRACTED
 from anki_builder.enrich.ai import enrich_cards
 from anki_builder.export.apkg import export_apkg
 from anki_builder.ingest.excel import ingest_excel
@@ -17,7 +18,6 @@ from anki_builder.schema import Card
 from anki_builder.state import StateManager, finalize_card_status
 
 WORKSPACE_DIR = Path("workspace")
-IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp", ".heic", ".heif"}
 
 
 def _resolve_work_dir(output: str | None) -> Path:
@@ -55,6 +55,34 @@ def _detect_input_type(path_or_url: str) -> str:
         return "image"
     else:
         raise click.ClickException(f"Unsupported file type: {suffix}")
+
+
+def _ingest_source(
+    input_path: str,
+    input_type: str,
+    target_language: str,
+    source_language: str,
+    config: Config,
+    state: StateManager | None = None,
+    typing: bool = False,
+) -> list[Card]:
+    """Dispatch ingestion to the appropriate handler based on input type."""
+    if input_type == "gdrive":
+        return ingest_gdrive_folder(
+            input_path, target_language, config.google_api_key, config.minimax_api_key, source_language
+        )
+    elif input_type == "excel":
+        return ingest_excel(Path(input_path), target_language, source_language)
+    elif input_type == "pdf":
+        return ingest_pdf(Path(input_path), target_language, config.minimax_api_key, source_language)
+    elif input_type == "image":
+        return ingest_image(Path(input_path), target_language, source_language, config.google_api_key)
+    elif input_type == "folder":
+        return _ingest_folder(
+            Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key,
+            state=state, typing=typing,
+        )
+    raise click.ClickException(f"Unknown input type: {input_type}")
 
 
 def _ingest_folder(
@@ -168,24 +196,7 @@ def run(
         if input_type in ("image", "folder", "gdrive"):
             config.require_google_key()
         click.echo(f"Step 1/4: Ingesting {input_path}...")
-        if input_type == "gdrive":
-            cards = ingest_gdrive_folder(
-                input_path, target_language, config.google_api_key, config.minimax_api_key, source_language
-            )
-        elif input_type == "excel":
-            path = Path(input_path)
-            cards = ingest_excel(path, target_language, source_language)
-        elif input_type == "pdf":
-            path = Path(input_path)
-            cards = ingest_pdf(path, target_language, config.minimax_api_key, source_language)
-        elif input_type == "image":
-            path = Path(input_path)
-            cards = ingest_image(path, target_language, source_language, config.google_api_key)
-        elif input_type == "folder":
-            cards = _ingest_folder(
-                Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key,
-                state=state, typing=typing,
-            )
+        cards = _ingest_source(input_path, input_type, target_language, source_language, config, state, typing)
 
     if typing and input_type != "folder":
         cards = [c.model_copy(update={"typing": True}) for c in cards]
@@ -195,7 +206,7 @@ def run(
     click.echo(f"  Extracted {len(cards)} cards. Total: {len(merged)}.")
 
     # Enrich
-    to_enrich = [c for c in merged if c.status == "extracted"]
+    to_enrich = [c for c in merged if c.status == STATUS_EXTRACTED]
     if to_enrich:
         click.echo(f"Step 2/4: Enriching {len(to_enrich)} of {len(merged)} cards with AI...")
         if config.enrich_provider == "gemini":
@@ -304,24 +315,7 @@ def ingest(
         if input_type in ("pdf", "gdrive"):
             config.require_minimax_key()
 
-        if input_type == "gdrive":
-            cards = ingest_gdrive_folder(
-                input_path, target_language, config.google_api_key, config.minimax_api_key, source_language
-            )
-        elif input_type == "excel":
-            path = Path(input_path)
-            cards = ingest_excel(path, target_language, source_language)
-        elif input_type == "pdf":
-            path = Path(input_path)
-            cards = ingest_pdf(path, target_language, config.minimax_api_key, source_language)
-        elif input_type == "image":
-            path = Path(input_path)
-            cards = ingest_image(path, target_language, source_language, config.google_api_key)
-        elif input_type == "folder":
-            cards = _ingest_folder(
-                Path(input_path), target_language, source_language, config.google_api_key, config.minimax_api_key,
-                state=state, typing=typing,
-            )
+        cards = _ingest_source(input_path, input_type, target_language, source_language, config, state, typing)
 
     if typing and input_type != "folder":
         cards = [c.model_copy(update={"typing": True}) for c in cards]
@@ -343,7 +337,7 @@ def enrich(output_dir: str):
         click.echo("No cards found. Run 'ingest' first.")
         return
 
-    to_enrich = [c for c in cards if c.status == "extracted"]
+    to_enrich = [c for c in cards if c.status == STATUS_EXTRACTED]
     if not to_enrich:
         click.echo(f"All {len(cards)} cards already enriched, nothing to do.")
         return

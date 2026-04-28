@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from anki_builder.constants import STATUS_COMPLETE, STATUS_ENRICHED, STATUS_EXTRACTED
 from anki_builder.schema import Card
 
 FIELD_MIGRATION = {
@@ -82,7 +83,7 @@ class StateManager:
                 if old.typing:
                     update_data["typing"] = old.typing
                 update_data["id"] = old.id
-                if old.status != "extracted":
+                if old.status != STATUS_EXTRACTED:
                     update_data["status"] = old.status
                 merged.append(card.model_copy(update=update_data))
             else:
@@ -97,12 +98,14 @@ class StateManager:
 
 
 def finalize_card_status(cards: list[Card], no_images: bool = False, no_audio: bool = False) -> list[Card]:
+    pending_statuses = (STATUS_EXTRACTED, STATUS_ENRICHED)
     updated = []
     for card in cards:
-        if card.status in ("extracted", "enriched") and card.audio_file and card.image_file:
-            updated.append(card.model_copy(update={"status": "complete"}))
-        elif card.status in ("extracted", "enriched") and (no_images or no_audio):
-            updated.append(card.model_copy(update={"status": "complete"}))
+        is_pending = card.status in pending_statuses
+        has_all_media = card.audio_file and card.image_file
+        media_skipped = no_images or no_audio
+        if is_pending and (has_all_media or media_skipped):
+            updated.append(card.model_copy(update={"status": STATUS_COMPLETE}))
         else:
             updated.append(card)
     return updated

@@ -11,7 +11,7 @@ from google import genai
 from google.genai import types
 from google.genai.errors import ClientError
 
-from anki_builder.constants import MAX_RETRIES
+from anki_builder.constants import MAX_RETRIES, STATUS_ENRICHED
 from anki_builder.schema import Card
 
 pillow_heif.register_heif_opener()
@@ -100,6 +100,6 @@ def ingest_image(path: Path, target_language: str, source_language: str = "de", 
         # Gemini prompt already requests all enrichment fields;
         # mark as enriched if the key fields are present
         if card_data.get("target_word"):
-            card_data["status"] = "enriched"
+            card_data["status"] = STATUS_ENRICHED
         cards.append(Card(**card_data))
     return cards

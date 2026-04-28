@@ -1,12 +1,18 @@
 import json
-import re
 import unicodedata
 
 import anthropic
 from google import genai
 from google.genai import types
 
-from anki_builder.constants import GEMINI_ENRICH_MODEL, MINIMAX_BASE_URL, MINIMAX_MODEL
+from anki_builder.constants import (
+    GEMINI_ENRICH_MODEL,
+    MINIMAX_BASE_URL,
+    MINIMAX_MODEL,
+    STATUS_ENRICHED,
+    STATUS_EXTRACTED,
+)
+from anki_builder.enrich import extract_response_text, parse_json_response
 from anki_builder.schema import Card
 
 
@@ -75,18 +81,6 @@ def _build_enrichment_prompt(cards: list[Card]) -> str:
     )
 
 
-def _parse_enrichment_response(text: str) -> list[dict]:
-    cleaned = re.sub(r"^```(?:json)?\s*\n?", "", text.strip())
-    cleaned = re.sub(r"\n?```\s*$", "", cleaned)
-    try:
-        data = json.loads(cleaned)
-        if isinstance(data, list):
-            return data
-        return []
-    except json.JSONDecodeError:
-        return []
-
-
 def _enrich_minimax(batch: list[Card], api_key: str) -> list[dict]:
     client = anthropic.Anthropic(
         api_key=api_key,
@@ -99,12 +93,7 @@ def _enrich_minimax(batch: list[Card], api_key: str) -> list[dict]:
         messages=[{"role": "user", "content": prompt}],
         temperature=0.3,
     )
-    content = ""
-    for block in response.content:
-        if hasattr(block, "text"):
-            content = block.text
-            break
-    return _parse_enrichment_response(content)
+    return parse_json_response(extract_response_text(response))
 
 
 def _enrich_gemini(batch: list[Card], api_key: str) -> list[dict]:
@@ -118,7 +107,7 @@ def _enrich_gemini(batch: list[Card], api_key: str) -> list[dict]:
             temperature=0.3,
         ),
     )
-    return _parse_enrichment_response(response.text or "")
+    return parse_json_response(response.text or "")
 
 
 PROVIDERS = {
@@ -132,8 +121,8 @@ def enrich_cards(
     api_key: str,
     provider: str = "minimax",
 ) -> list[Card]:
-    to_enrich = [c for c in cards if c.status == "extracted"]
-    already_done = [c for c in cards if c.status != "extracted"]
+    to_enrich = [c for c in cards if c.status == STATUS_EXTRACTED]
+    already_done = [c for c in cards if c.status != STATUS_EXTRACTED]
 
     if not to_enrich:
         return cards
@@ -155,7 +144,7 @@ def enrich_cards(
                 item = items[i]
 
             if item is not None:
-                update = {"status": "enriched"}
+                update = {"status": STATUS_ENRICHED}
                 for field in [
                     "target_word",
                     "target_pronunciation",
