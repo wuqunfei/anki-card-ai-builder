@@ -164,7 +164,7 @@ workspace/
 
 ```
 src/anki_builder/
-├── cli.py              # Click CLI — run, ingest, enrich, media, review, export, clean
+├── cli.py              # Typer CLI — run, ingest, enrich, media, review, export, clean
 ├── config.py           # Environment config loading
 ├── schema.py           # Card data model (Pydantic)
 ├── state.py            # JSON state persistence + card merging

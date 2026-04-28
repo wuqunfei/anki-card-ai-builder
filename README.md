@@ -140,29 +140,29 @@ Example: if you speak German and are learning English: `--lang-target en --lang-
 
 ```bash
 # From word list — creates a new workspace automatically
-anki-builder run --words "Glove,Squirrel,impossible" --lang-target en
+ankids run --words "Glove,Squirrel,impossible" --lang-target en
 
 # From Excel/CSV
-anki-builder run --input vocab.xlsx --lang-target en
+ankids run --input vocab.xlsx --lang-target en
 
 # From PDF
-anki-builder run --input textbook.pdf --lang-target en
+ankids run --input textbook.pdf --lang-target en
 
 # From image (OCR — supports PNG, JPG, HEIC, WebP, etc.)
-anki-builder run --input photo.heic --lang-target en
+ankids run --input photo.heic --lang-target en
 
 # From a folder of images/PDFs
-anki-builder run --input ./my-scans/ --lang-target en
+ankids run --input ./my-scans/ --lang-target en
 
 # From Google Drive folder
-anki-builder run --input "https://drive.google.com/drive/folders/..." --lang-target en
+ankids run --input "https://drive.google.com/drive/folders/..." --lang-target en
 ```
 
 The `run` command prints the workspace path. Use `--output` to continue in an existing workspace:
 
 ```bash
 # Add more words to an existing workspace
-anki-builder run --words "more,words" --lang-target en --output workspace/a1b2c3d4
+ankids run --words "more,words" --lang-target en --output workspace/a1b2c3d4
 ```
 
 #### Step-by-step pipeline
@@ -171,39 +171,39 @@ Run each step individually, passing the workspace folder with `--output`:
 
 ```bash
 # 1. Ingest words (creates workspace/a1b2c3d4/)
-anki-builder ingest --words "Glove,Squirrel" --lang-target en
+ankids ingest --words "Glove,Squirrel" --lang-target en
 
 # 2. Enrich with AI
-anki-builder enrich --output workspace/a1b2c3d4
+ankids enrich --output workspace/a1b2c3d4
 
 # 3. Generate audio and images
-anki-builder media --output workspace/a1b2c3d4
+ankids media --output workspace/a1b2c3d4
 
 # 4. Review cards
-anki-builder review --output workspace/a1b2c3d4
+ankids review --output workspace/a1b2c3d4
 
 # 5. Export to .apkg
-anki-builder export --output workspace/a1b2c3d4 --deck "English Vocabulary"
+ankids export --output workspace/a1b2c3d4 --deck "English Vocabulary"
 ```
 
 #### Options
 
 ```bash
 # Skip image or audio generation
-anki-builder run --words "cat,dog" --lang-target en --no-images
-anki-builder run --words "cat,dog" --lang-target en --no-audio
+ankids run --words "cat,dog" --lang-target en --no-images
+ankids run --words "cat,dog" --lang-target en --no-audio
 
 # Create "type the answer" cards (spelling practice)
-anki-builder run --words "cat,dog" --lang-target en --typing
+ankids run --words "cat,dog" --lang-target en --typing
 
 # Custom deck name
-anki-builder run --input vocab.xlsx --lang-target en --deck "Unit 5 Words"
+ankids run --input vocab.xlsx --lang-target en --deck "Unit 5 Words"
 
 # Custom .apkg output path
-anki-builder export --output workspace/a1b2c3d4 --deck "Test" --apkg ./my-deck.apkg
+ankids export --output workspace/a1b2c3d4 --deck "Test" --apkg ./my-deck.apkg
 
 # Clean up a workspace
-anki-builder clean --output workspace/a1b2c3d4
+ankids clean --output workspace/a1b2c3d4
 ```
 
 ### CLI Reference
