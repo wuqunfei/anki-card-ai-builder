@@ -95,10 +95,18 @@ The `run` command executes steps 1–3 automatically. Then use `export` to creat
 | Russian | `ru` | — | No |
 | Arabic | `ar` | — | No |
 
-## What You Get
+## What You Got before
 
 <p align="center">
-  <img src="examples/Screenshot-Anki-MacApp.png" alt="Example Anki card showing AI-generated content" width="400">
+  <img src="docs/before.png" alt="Old Card" width="400">
+</p>
+
+
+
+## What You Get After
+
+<p align="center">
+  <img src="docs/after.png" alt="New Card" width="400">
 </p>
 
 An example card in Anki showing: AI-generated cartoon image, IPA pronunciation, color-coded morpheme breakdown (con- + centr + -ate), origin chain, cognates across languages, memory hook, and an example sentence with translation.
